@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Пупок FM</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Пупок FM">
+    <meta name="theme-color" id="theme-color-meta" content="#4a3aff">
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        html, body {
+            overscroll-behavior: none;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            --bg-gradient-start: #e9e9f0;
+            --bg-gradient-end: #dadde8;
+            --container-bg: rgba(240, 240, 245, 0.8);
+            --text-primary: #1a1a2e;
+            --text-secondary: #2c3e50;
+            --text-muted: #6b6b80;
+            --accent: #4a3aff;
+            --accent-light: #7a6aff;
+            --card-bg: rgba(255, 255, 255, 0.6);
+            --card-border: rgba(255,255,255,0.6);
+            --shadow: 0 25px 40px -20px rgba(0,0,0,0.2);
+            --delete-color: #ff6b6b;
+            --slider-track: rgba(0,0,0,0.08);
+            --slider-thumb: white;
+            --scroll-thumb: #b0b0d0;
+            --scroll-track: #e0e0f0;
+            --icon-bg: white;
+            --panel-bg: rgba(255, 255, 255, 0.8);
+            --control-btn-bg: var(--icon-bg);
+            --control-btn-color: var(--accent);
+            --panel-separator: rgba(0,0,0,0.08);
+            transition: background 0.2s, color 0.2s;
+            
+            background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        body.dark {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --container-bg: rgba(26, 26, 46, 0.95);
+            --text-primary: #f0f0ff;
+            --text-secondary: #ecf0f1;
+            --text-muted: #8a8aa0;
+            --accent: #6d5fff;
+            --accent-light: #9a8cff;
+            --card-bg: rgba(40, 40, 55, 0.7);
+            --card-border: rgba(255,255,255,0.1);
+            --shadow: 0 25px 40px -20px rgba(0,0,0,0.5);
+            --delete-color: #ff8a8a;
+            --slider-track: rgba(255,255,255,0.15);
+            --slider-thumb: #e0e0ff;
+            --scroll-thumb: #6d5fff;
+            --scroll-track: #2a2a40;
+            --icon-bg: #2a2a40;
+            --panel-bg: rgba(30, 30, 46, 0.9);
+            --control-btn-bg: #2a2a40;
+            --control-btn-color: #9a8cff;
+            --panel-separator: rgba(255,255,255,0.15);
+        }
+
+        .player-container {
+            width: 100%;
+            height: 100vh;
+            background: var(--container-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: var(--shadow);
+            padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle {
+            background: var(--icon-bg);
+            width: 44px;
+            height: 44px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            color: var(--accent);
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.94);
+            background: var(--card-bg);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .upload-btn {
+            background: var(--icon-bg);
+            width: 44px;
+            height: 44px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            color: var(--accent);
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .upload-btn:active {
+            transform: scale(0.94);
+            background: var(--card-bg);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .search-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .search-panel {
+            background: var(--panel-bg);
+            border-radius: 40px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-panel i {
+            color: var(--accent);
+            font-size: 18px;
+            opacity: 0.9;
+            margin-left: 4px;
+        }
+
+        #search-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 17px;
+            color: var(--text-primary);
+        }
+
+        #search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .playback-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .control-btn {
+            background: var(--control-btn-bg);
+            width: 48px;
+            height: 48px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.1s;
+            border: none;
+            color: var(--control-btn-color);
+            font-size: 22px;
+        }
+
+        .control-btn:active {
+            transform: scale(0.92);
+        }
+
+        .control-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .control-btn.repeat-one {
+            position: relative;
+        }
+        .control-btn.repeat-one::after {
+            content: '1';
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            bottom: 4px;
+            right: 8px;
+            color: currentColor;
+        }
+
+        .playlist-panel {
+            background: var(--panel-bg);
+            border-radius: 28px;
+            padding: 16px 0 16px 12px;
+            border: none;
+            backdrop-filter: blur(5px);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .playlist-content {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .playlist-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .playlist-content::-webkit-scrollbar-track {
+            background: var(--scroll-track);
+            border-radius: 10px;
+        }
+
+        .playlist-content::-webkit-scrollbar-thumb {
+            background: var(--scroll-thumb);
+            border-radius: 10px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            margin-right: 12px;
+            color: var(--text-muted);
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .track-item {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 12px;
+            margin-right: 12px;
+            border: none;
+        }
+
+        .track-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .track-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-left {
+            width: 40px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .delete-btn, .confirm-btn, .cancel-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--icon-bg);
+            cursor: pointer;
+            transition: 0.1s;
+            border: none;
+            font-size: 16px;
+        }
+
+        .delete-btn {
+            color: var(--delete-color);
+        }
+
+        .delete-btn:active, .confirm-btn:active, .cancel-btn:active {
+            transform: scale(0.9);
+        }
+
+        .confirm-btn {
+            color: #2ecc71;
+            background: var(--icon-bg);
+        }
+
+        .cancel-btn {
+            color: var(--delete-color);
+            background: var(--icon-bg);
+        }
+
+        .track-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .track-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .progress-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .progress-slider:focus {
+            outline: none;
+        }
+
+        .progress-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: var(--slider-track);
+            border-radius: 10px;
+        }
+
+        .progress-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 10px;
+            background: var(--slider-thumb);
+            box-shadow: 0 2px 8px rgba(74, 58, 255, 0.4);
+            border: 2px solid var(--accent);
+            margin-top: -6px;
+        }
+
+        .play-pause-btn {
+            color: var(--accent);
+            font-size: 22px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            background: var(--icon-bg);
+            box-shadow: 0 6px 12px rgba(74,58,255,0.15);
+            cursor: pointer;
+            flex-shrink: 0;
+            border: none;
+        }
+
+        .play-pause-btn:active {
+            transform: scale(0.92);
+        }
+
+        .play-pause-btn.playing {
+            color: white;
+            background: var(--accent);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="player-container">
+        <div class="header">
+            <div class="theme-toggle" id="theme-toggle">
+                <i class="fas fa-sun"></i>
+            </div>
+            <h1>Пупок FM</h1>
+            <label for="file-input" class="upload-btn">
+                <i class="fas fa-plus"></i>
+            </label>
+            <input type="file" id="file-input" accept=".mp3,.flac,audio/mpeg,audio/flac" multiple>
+        </div>
+
+        <div class="search-row">
+            <div class="search-panel">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Поиск" autocomplete="off">
+            </div>
+            <div class="playback-controls">
+                <div class="control-btn" id="autoplay-btn" title="Автовоспроизведение следующего">
+                    <i class="fas fa-play-circle"></i>
+                </div>
+                <div class="control-btn" id="repeat-btn" title="Режим повтора">
+                    <i class="fas fa-repeat"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="playlist-panel">
+            <div class="playlist-content" id="playlist-content">
+                <div id="playlist"></div>
+                <div id="empty-message" class="empty-message">🎵 Плейлист пуст</div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="global-audio" style="display: none;"></audio>
+
+    <script>
+        (function() {
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => console.log('SW registered:', reg))
+                        .catch(err => console.error('SW registration failed:', err));
+                });
+            }
+
+            const DB_NAME = 'PupokFMDB';
+            const STORE_NAME = 'tracks';
+            const DB_VERSION = 2;
+
+            let db = null;
+
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = themeToggle.querySelector('i');
+            let currentTheme = localStorage.getItem('pupokTheme') || 'system';
+
+            function setTheme(theme) {
+                currentTheme = theme;
+                localStorage.setItem('pupokTheme', theme);
+                applyTheme();
+            }
+
+            function applyTheme() {
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                let isDark = false;
+                if (currentTheme === 'dark') isDark = true;
+                else if (currentTheme === 'system') isDark = systemDark;
+
+                document.body.classList.toggle('dark', isDark);
+
+                if (currentTheme === 'light') themeIcon.className = 'fas fa-sun';
+                else if (currentTheme === 'dark') themeIcon.className = 'fas fa-moon';
+                else themeIcon.className = 'fas fa-circle-half-stroke';
+
+                const themeColorMeta = document.getElementById('theme-color-meta');
+                if (themeColorMeta) {
+                    if (isDark) {
+                        themeColorMeta.setAttribute('content', '#1a1a2e');
+                    } else {
+                        themeColorMeta.setAttribute('content', '#4a3aff');
+                    }
+                }
+            }
+
+            themeToggle.addEventListener('click', () => {
+                if (currentTheme === 'light') setTheme('dark');
+                else if (currentTheme === 'dark') setTheme('system');
+                else setTheme('light');
+            });
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+            const autoplayBtn = document.getElementById('autoplay-btn');
+            const repeatBtn = document.getElementById('repeat-btn');
+
+            let autoplayEnabled = localStorage.getItem('autoplay') === 'true';
+            let repeatMode = parseInt(localStorage.getItem('repeatMode') || '0');
+
+            function updateAutoplayButton() {
+                if (autoplayEnabled) {
+                    autoplayBtn.classList.add('active');
+                } else {
+                    autoplayBtn.classList.remove('active');
+                }
+            }
+
+            function updateRepeatButton() {
+                repeatBtn.classList.remove('active', 'repeat-one');
+                if (repeatMode === 1) {
+                    repeatBtn.classList.add('active');
+                } else if (repeatMode === 2) {
+                    repeatBtn.classList.add('active', 'repeat-one');
+                }
+            }
+
+            autoplayBtn.addEventListener('click', () => {
+                autoplayEnabled = !autoplayEnabled;
+                localStorage.setItem('autoplay', autoplayEnabled);
+                updateAutoplayButton();
+            });
+
+            repeatBtn.addEventListener('click', () => {
+                repeatMode = (repeatMode + 1) % 3;
+                localStorage.setItem('repeatMode', repeatMode);
+                updateRepeatButton();
+            });
+
+            updateAutoplayButton();
+            updateRepeatButton();
+
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        db = request.result;
+                        resolve(db);
+                    };
+                    request.onupgradeneeded = (evt) => {
+                        const db = evt.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        }
+                    };
+                });
+            }
+
+            async function addTrackToDB(track) {
+                if (!db) await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.put(track);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async function getAllTracksFromDB() {
+                if (!db) await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async function deleteTrackFromDB(id) {
+                if (!db) await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.delete(id);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            const audio = document.getElementById('global-audio');
+            const playlistEl = document.getElementById('playlist');
+            const emptyMsg = document.getElementById('empty-message');
+            const fileInput = document.getElementById('file-input');
+            const searchInput = document.getElementById('search-input');
+
+            const tracksMap = new Map();
+            let activeTrackId = null;
+
+            function updateEmptyMessage() {
+                emptyMsg.style.display = playlistEl.children.length === 0 ? 'block' : 'none';
+            }
+
+            function updatePlayButton(id, isPlaying) {
+                const track = tracksMap.get(id);
+                if (!track) return;
+                const btn = track.playBtn;
+                btn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+                btn.classList.toggle('playing', isPlaying);
+            }
+
+            function getNextVisibleTrack(currentId) {
+                const items = Array.from(playlistEl.children).filter(el => el.style.display !== 'none');
+                if (items.length === 0) return null;
+                const currentIndex = items.findIndex(el => el.dataset.id === currentId);
+                if (currentIndex === -1) return null;
+                let nextIndex = currentIndex + 1;
+                if (nextIndex >= items.length) {
+                    if (repeatMode === 1) {
+                        nextIndex = 0;
+                    } else {
+                        return null;
+                    }
+                }
+                return items[nextIndex]?.dataset.id;
+            }
+
+            audio.addEventListener('ended', () => {
+                if (!activeTrackId) return;
+                const track = tracksMap.get(activeTrackId);
+                if (!track) return;
+
+                if (repeatMode === 2) {
+                    audio.currentTime = 0;
+                    audio.play().catch(() => {});
+                    return;
+                }
+
+                track.slider.value = 0;
+                updatePlayButton(activeTrackId, false);
+
+                if (autoplayEnabled) {
+                    const nextId = getNextVisibleTrack(activeTrackId);
+                    if (nextId) {
+                        activateTrack(nextId, true);
+                    }
+                }
+            });
+
+            function activateTrack(id, autoPlay = true) {
+                const track = tracksMap.get(id);
+                if (!track) return;
+
+                if (activeTrackId === id) {
+                    if (autoPlay && audio.paused) audio.play().catch(() => {});
+                    return;
+                }
+
+                if (activeTrackId) {
+                    const prev = tracksMap.get(activeTrackId);
+                    if (prev) {
+                        prev.slider.value = 0;
+                        updatePlayButton(activeTrackId, false);
+                    }
+                }
+
+                audio.src = track.objectURL;
+                audio.load();
+                audio.currentTime = 0;
+                activeTrackId = id;
+
+                if (track.duration && !isNaN(track.duration)) {
+                    track.slider.max = Math.floor(track.duration);
+                } else {
+                    audio.addEventListener('loadedmetadata', function onMeta() {
+                        audio.removeEventListener('loadedmetadata', onMeta);
+                        const dur = audio.duration;
+                        if (!isNaN(dur) && dur > 0) {
+                            track.duration = dur;
+                            track.slider.max = Math.floor(dur);
+                        }
+                    });
+                }
+
+                track.slider.value = 0;
+
+                if (autoPlay) {
+                    audio.play().catch(() => {});
+                    updatePlayButton(id, true);
+                } else {
+                    updatePlayButton(id, false);
+                }
+            }
+
+            function togglePlay(id) {
+                const track = tracksMap.get(id);
+                if (!track) return;
+                if (activeTrackId !== id) {
+                    activateTrack(id, true);
+                } else {
+                    if (audio.paused) {
+                        audio.play().catch(() => {});
+                        updatePlayButton(id, true);
+                    } else {
+                        audio.pause();
+                        updatePlayButton(id, false);
+                    }
+                }
+            }
+
+            async function deleteTrack(id) {
+                const track = tracksMap.get(id);
+                if (!track) return;
+
+                if (activeTrackId === id) {
+                    audio.pause();
+                    audio.src = '';
+                    activeTrackId = null;
+                }
+
+                await deleteTrackFromDB(id);
+                URL.revokeObjectURL(track.objectURL);
+                track.element.remove();
+                tracksMap.delete(id);
+                updateEmptyMessage();
+                filterTracks();
+            }
+
+            function showDeleteConfirmation(id) {
+                const track = tracksMap.get(id);
+                if (!track) return;
+                const actionLeft = track.element.querySelector('.action-left');
+                actionLeft.innerHTML = `
+                    <div class="confirm-btn"><i class="fas fa-check"></i></div>
+                    <div class="cancel-btn"><i class="fas fa-times"></i></div>
+                `;
+                actionLeft.querySelector('.confirm-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTrack(id);
+                });
+                actionLeft.querySelector('.cancel-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    actionLeft.innerHTML = `<div class="delete-btn"><i class="fas fa-trash-alt"></i></div>`;
+                    const newDelete = actionLeft.querySelector('.delete-btn');
+                    if (newDelete) newDelete.addEventListener('click', (e2) => {
+                        e2.stopPropagation();
+                        showDeleteConfirmation(id);
+                    });
+                });
+            }
+
+            function createTrackElement(track) {
+                const id = track.id;
+                const name = track.name || 'Без названия';
+                const duration = track.duration || 0;
+
+                const item = document.createElement('div');
+                item.className = 'track-item';
+                item.dataset.id = id;
+
+                const row = document.createElement('div');
+                row.className = 'track-row';
+
+                const actionLeft = document.createElement('div');
+                actionLeft.className = 'action-left';
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDeleteConfirmation(id);
+                });
+                actionLeft.appendChild(deleteBtn);
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'track-info';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'track-name';
+                nameDiv.textContent = name;
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.className = 'progress-slider';
+                slider.min = 0;
+                slider.max = Math.floor(duration) || 0;
+                slider.value = 0;
+                slider.step = 0.1;
+
+                infoDiv.appendChild(nameDiv);
+                infoDiv.appendChild(slider);
+
+                const playBtn = document.createElement('div');
+                playBtn.className = 'play-pause-btn';
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+
+                row.appendChild(actionLeft);
+                row.appendChild(infoDiv);
+                row.appendChild(playBtn);
+                item.appendChild(row);
+
+                return { item, actionLeft, deleteBtn, playBtn, slider };
+            }
+
+            function addTrackToUI(track) {
+                const { item, playBtn, slider } = createTrackElement(track);
+                playlistEl.appendChild(item);
+
+                tracksMap.set(track.id, {
+                    element: item,
+                    name: track.name,
+                    blob: track.blob,
+                    objectURL: URL.createObjectURL(track.blob),
+                    duration: track.duration,
+                    slider,
+                    playBtn,
+                });
+
+                playBtn.addEventListener('click', () => togglePlay(track.id));
+
+                slider.addEventListener('input', (e) => {
+                    const newTime = parseFloat(e.target.value);
+                    if (activeTrackId === track.id) {
+                        audio.currentTime = newTime;
+                    } else {
+                        activateTrack(track.id, false);
+                        audio.currentTime = newTime;
+                        updatePlayButton(track.id, false);
+                    }
+                });
+
+                updatePlayButton(track.id, false);
+                updateEmptyMessage();
+                filterTracks();
+            }
+
+            function filterTracks() {
+                const query = searchInput.value.trim().toLowerCase();
+                tracksMap.forEach((track) => {
+                    track.element.style.display = query === '' || track.name.toLowerCase().includes(query) ? 'block' : 'none';
+                });
+            }
+            searchInput.addEventListener('input', filterTracks);
+
+            fileInput.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                for (const file of files) {
+                    const isMp3 = file.type === 'audio/mpeg' || file.name.toLowerCase().endsWith('.mp3');
+                    const isFlac = file.type === 'audio/flac' || file.name.toLowerCase().endsWith('.flac');
+                    if (!isMp3 && !isFlac) {
+                        alert(`Файл "${file.name}" не является MP3 или FLAC.`);
+                        continue;
+                    }
+
+                    let duration;
+                    try {
+                        duration = await getAudioDuration(file);
+                    } catch (err) {
+                        console.warn('Ошибка при загрузке аудио:', err);
+                        alert(`Не удалось загрузить "${file.name}". Файл повреждён или не поддерживается.`);
+                        continue;
+                    }
+
+                    if (duration === null || isNaN(duration) || duration <= 0) {
+                        alert(`Не удалось прочитать длительность "${file.name}".`);
+                        continue;
+                    }
+
+                    const id = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36);
+                    const track = { id, name: file.name, blob: file, duration };
+                    await addTrackToDB(track);
+                    addTrackToUI(track);
+                }
+                fileInput.value = '';
+            });
+
+            function getAudioDuration(blob) {
+                return new Promise((resolve) => {
+                    const url = URL.createObjectURL(blob);
+                    const tempAudio = new Audio(url);
+                    tempAudio.addEventListener('loadedmetadata', () => {
+                        const duration = tempAudio.duration;
+                        URL.revokeObjectURL(url);
+                        resolve(duration);
+                    });
+                    tempAudio.addEventListener('error', () => {
+                        URL.revokeObjectURL(url);
+                        resolve(null);
+                    });
+                });
+            }
+
+            audio.addEventListener('timeupdate', () => {
+                if (!activeTrackId) return;
+                const track = tracksMap.get(activeTrackId);
+                if (!track) return;
+                const current = audio.currentTime;
+                const duration = audio.duration || track.duration;
+                if (!isNaN(current)) {
+                    track.slider.value = current;
+                }
+                if (!isNaN(duration) && duration > 0) {
+                    track.slider.max = Math.floor(duration);
+                }
+            });
+
+            async function init() {
+                await openDB();
+                applyTheme();
+                const tracks = await getAllTracksFromDB();
+                for (const track of tracks) {
+                    addTrackToUI(track);
+                }
+            }
+            init().catch(console.error);
+        })();
+    </script>
+</body>
+</html>
