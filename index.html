@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-title" content="Пупок FM">
     <meta name="theme-color" id="theme-color-meta" content="#b8a9d2">
     
-    <!-- iOS icons -->
     <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
     <link rel="apple-touch-icon" href="icons/icon-512x512.png">
     <link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96x96.png">
@@ -31,7 +30,7 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            position: fixed;  /* предотвращает сдвиг при клавиатуре */
+            position: fixed;
             top: 0;
             left: 0;
         }
@@ -44,7 +43,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* ---------- ПЕРЕМЕННЫЕ (МЯГКИЕ ЦВЕТА) ---------- */
         body {
             --bg-gradient-start: #f3e8fd;
             --bg-gradient-end: #e2d9f0;
@@ -267,8 +265,6 @@
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            /* физический карман совпадает с визуальным */
-            clip-path: inset(0 round 36px);
         }
 
         .playlist-content {
@@ -533,12 +529,10 @@
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--scroll-thumb) var(--scroll-track);
-            /* скруглённый карман для списка треков в плейлисте */
             background: var(--panel-bg);
             border-radius: 36px;
             padding: 16px 8px 16px 16px;
             margin-top: 8px;
-            clip-path: inset(0 round 36px);
         }
         .playlist-list::-webkit-scrollbar { width: 6px; }
         .playlist-list::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 10px; }
@@ -898,14 +892,31 @@
         // ---------- ФУНКЦИИ ПЛЕЕРА ----------
         function updateEmptyMessage() { emptyMsg.style.display = playlistEl.children.length ? 'none' : 'block'; }
         function updatePlayButton(id, isPlaying) {
-            const t = tracksMap.get(id); if(!t) return;
+            const t = tracksMap.get(id);
+            if (!t) return;
             t.playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
             t.playBtn.classList.toggle('playing', isPlaying);
+            // обновить также в плейлисте, если открыт
+            const playlistBtn = document.querySelector(`.playlist-list .play-pause-btn[data-id="${id}"]`);
+            if (playlistBtn) {
+                playlistBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+                playlistBtn.classList.toggle('playing', isPlaying);
+            }
         }
         function updateSliderFill(slider, value, max) {
             if (!slider) return;
             const percent = max > 0 ? (value / max) * 100 : 0;
             slider.style.setProperty('--fill-percent', percent + '%');
+        }
+
+        // Обновление всех слайдеров с данным trackId
+        function updateAllSlidersForTrack(trackId, current, duration) {
+            const sliders = document.querySelectorAll(`.progress-slider[data-track-id="${trackId}"]`);
+            sliders.forEach(slider => {
+                slider.value = current;
+                updateSliderFill(slider, current, duration);
+                if (!isNaN(duration) && duration > 0) slider.max = Math.floor(duration);
+            });
         }
 
         audio.addEventListener('timeupdate', () => {
@@ -917,6 +928,8 @@
             track.slider.value = current;
             updateSliderFill(track.slider, current, duration);
             if (!isNaN(duration) && duration > 0) track.slider.max = Math.floor(duration);
+            // обновить слайдеры в плейлистах
+            updateAllSlidersForTrack(activeTrackId, current, duration);
         });
 
         audio.addEventListener('ended', () => {
@@ -999,6 +1012,7 @@
             const infoDiv = document.createElement('div'); infoDiv.className = 'track-info';
             const nameDiv = document.createElement('div'); nameDiv.className = 'track-name'; nameDiv.textContent = track.name;
             const slider = document.createElement('input'); slider.type = 'range'; slider.className = 'progress-slider'; slider.min = 0; slider.max = track.duration||0; slider.value=0; slider.step=0.1;
+            slider.dataset.trackId = track.id;
             infoDiv.appendChild(nameDiv); infoDiv.appendChild(slider);
             const playBtn = document.createElement('div'); playBtn.className = 'play-pause-btn'; playBtn.innerHTML = '<i class="fas fa-play"></i>';
             row.appendChild(actionLeft); row.appendChild(infoDiv); row.appendChild(playBtn);
@@ -1138,7 +1152,8 @@
             // обновление плейсхолдера с количеством
             const searchField = document.getElementById('playlist-search-input');
             if (searchField) {
-                searchField.placeholder = `Поиск${filtered.length !== playlists.length ? ` (${filtered.length})` : ''}`;
+                const total = playlists.length;
+                searchField.placeholder = `Поиск${filtered.length !== total ? ` (${filtered.length})` : ''}`;
             }
         }
         function filterPlaylists() { loadPlaylistsToContainer(); }
@@ -1201,7 +1216,10 @@
             const allTracks = await getAllTracksFromDB();
             const q = filterText || document.getElementById('detail-search')?.value.toLowerCase() || '';
             const tracks = allTracks.filter(t=>trackIds.includes(t.id) && (!q || t.name.toLowerCase().includes(q)));
-            container.innerHTML = tracks.map(t=>`
+            container.innerHTML = tracks.map(t=>{
+                const isActive = (activeTrackId === t.id);
+                const isPlaying = isActive && !audio.paused;
+                return `
                 <div class="track-item" data-id="${t.id}">
                     <div class="track-row">
                         <div class="action-left">
@@ -1209,15 +1227,37 @@
                         </div>
                         <div class="track-info">
                             <div class="track-name">${t.name}</div>
-                            <input type="range" class="progress-slider" min="0" max="${t.duration||0}" value="0" step="0.1" disabled>
+                            <input type="range" class="progress-slider" min="0" max="${t.duration||0}" value="${isActive ? audio.currentTime : 0}" step="0.1" data-track-id="${t.id}">
                         </div>
-                        <div class="play-pause-btn" data-id="${t.id}"><i class="fas fa-play"></i></div>
+                        <div class="play-pause-btn" data-id="${t.id}">
+                            <i class="fas fa-${isPlaying ? 'pause' : 'play'}"></i>
+                        </div>
                     </div>
                 </div>
-            `).join('');
-            // прогресс-бары в плейлисте (только отображение)
+            `}).join('');
+            // инициализация слайдеров
             container.querySelectorAll('.progress-slider').forEach(slider => {
-                slider.style.setProperty('--fill-percent', '0%');
+                const trackId = slider.dataset.trackId;
+                const track = allTracks.find(t=>t.id === trackId);
+                if (track) {
+                    const val = (activeTrackId === trackId) ? audio.currentTime : 0;
+                    slider.value = val;
+                    updateSliderFill(slider, val, track.duration);
+                }
+                slider.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    updateSliderFill(slider, val, slider.max);
+                    if (activeTrackId === trackId) audio.currentTime = val;
+                    else {
+                        // активировать трек, но не запускать автовоспроизведение
+                        const trackData = allTracks.find(t=>t.id === trackId);
+                        if (trackData && !tracksMap.has(trackId)) {
+                            addTrackToUI(trackData);
+                        }
+                        activateTrack(trackId, false);
+                        audio.currentTime = val;
+                    }
+                });
             });
             container.querySelectorAll('.delete-btn').forEach(b=>{
                 b.addEventListener('click', (e)=>{
@@ -1280,7 +1320,6 @@
         selectorCancel.addEventListener('click', ()=>{
             selectorModal.classList.remove('visible');
             pendingAddToPlaylistId = null;
-            // сброс чекбоксов не требуется, при следующем открытии перерендерится
         });
         selectorConfirm.addEventListener('click', async ()=>{
             const checked = [...selectorList.querySelectorAll('input:checked')].map(cb=>cb.value);
