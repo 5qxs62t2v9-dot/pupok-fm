@@ -31,10 +31,6 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            /* Запрет системного контекстного меню на весь документ */
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
         * {
@@ -43,9 +39,6 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            /* Запрет выделения текста и изображений */
-            -webkit-user-select: none;
-            user-select: none;
         }
 
         /* ---------- ПЕРЕМЕННЫЕ (МЯГКИЕ ЦВЕТА) ---------- */
@@ -118,7 +111,6 @@
             flex-direction: column;
             border-radius: 36px;
             overflow: hidden;
-            position: relative;
         }
 
         /* ---------- ХЭДЕР ---------- */
@@ -126,7 +118,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 16px;
             padding: 0 4px;
             flex-shrink: 0;
         }
@@ -163,27 +155,6 @@
             letter-spacing: -0.5px;
             text-align: center;
             flex: 1;
-        }
-
-        /* ---------- ДАТА (английская с верхним индексом 67 и суффиксом) ---------- */
-        .date-container {
-            text-align: center;
-            margin-bottom: 12px;
-            flex-shrink: 0;
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            background: var(--panel-bg);
-            backdrop-filter: blur(5px);
-            border-radius: 40px;
-            padding: 8px 16px;
-            width: fit-content;
-            align-self: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-        .date-container sup {
-            font-size: 0.75em;
-            vertical-align: super;
         }
 
         #file-input {
@@ -298,7 +269,6 @@
             scrollbar-color: var(--scroll-thumb) var(--scroll-track);
             -webkit-overflow-scrolling: touch;
             padding-right: 6px;
-            /* разрешаем скролл только внутри этой области */
         }
 
         .playlist-content::-webkit-scrollbar {
@@ -391,6 +361,7 @@
             background: transparent;
             cursor: pointer;
             border-radius: 20px;
+            /* overflow: hidden; — НЕ используем, иначе thumb овальный */
         }
 
         .progress-slider:focus {
@@ -417,6 +388,7 @@
             z-index: 2;
         }
 
+        /* заполнение слева от бегунка — задаётся через JS */
         .progress-slider {
             background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill-percent, 0%), transparent var(--fill-percent, 0%));
             background-size: 100% 100%;
@@ -452,7 +424,7 @@
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body oncontextmenu="return false;">
+<body>
 <div class="player-container">
     <!-- Хедер -->
     <div class="header">
@@ -462,10 +434,7 @@
         <input type="file" id="file-input" accept=".mp3,.flac,audio/mpeg,audio/flac" multiple>
     </div>
 
-    <!-- Блок с датой по-английски + степень 67 -->
-    <div class="date-container" id="date-container">The 22<sup>67</sup><sup>nd</sup> of April</div>
-
-    <!-- Поиск + кнопки управления -->
+    <!-- Поиск + кнопки управления (без плейлистов) -->
     <div class="search-row">
         <div class="search-panel">
             <i class="fas fa-search"></i>
@@ -477,7 +446,7 @@
         </div>
     </div>
 
-    <!-- Основная панель треков (только здесь разрешён скролл) -->
+    <!-- Основная панель треков -->
     <div class="playlist-panel">
         <div class="playlist-content" id="playlist-content">
             <div id="playlist"></div>
@@ -492,121 +461,16 @@
     (function(){
         "use strict";
 
-        // ---------- ОБНОВЛЕНИЕ КЭША (удаление старых версий Service Worker и кэшей) ----------
-        const CACHE_VERSION = 'pupok-fm-v2';
-        if ('caches' in window) {
-            caches.keys().then(keys => {
-                keys.forEach(key => {
-                    if (key !== CACHE_VERSION) {
-                        caches.delete(key);
-                        console.log('Старый кэш удалён:', key);
-                    }
-                });
-            });
-        }
-        // Перерегистрация service worker с новой версией (если sw.js существует)
+        // ---------- SERVICE WORKER ----------
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                for(let registration of registrations) {
-                    registration.unregister();
-                }
-            }).then(() => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(console.error);
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(console.error);
             });
         }
-
-        // ---------- ЗАПРЕТ ЛИСТАНИЯ ВСЕЙ СТРАНИЦЫ (скролл только внутри .playlist-content) ----------
-        function preventScrollOnNonScrollable(e) {
-            const target = e.target;
-            const scrollable = document.querySelector('.playlist-content');
-            // Разрешаем touchmove только если цель находится внутри .playlist-content И контент может скроллиться
-            if (!scrollable || !scrollable.contains(target)) {
-                e.preventDefault();
-                return false;
-            }
-            // Дополнительная проверка: если элемент внутри .playlist-content, но скролл достиг границы
-            let el = target;
-            while (el && el !== scrollable) {
-                el = el.parentElement;
-            }
-            if (el === scrollable) {
-                // Проверяем направление скролла: если вверх и скролл вверху, или вниз и скролл внизу
-                const scrollTop = scrollable.scrollTop;
-                const scrollHeight = scrollable.scrollHeight;
-                const clientHeight = scrollable.clientHeight;
-                const deltaY = e.deltaY || (e.touches ? e.touches[0].clientY : 0);
-                // Для упрощения – разрешаем всегда, но браузер сам обработает границы
-                // Однако некоторые браузеры вызывают overscroll – блокируем только если не нужно
-                if ((scrollTop <= 0 && deltaY < 0) || (scrollTop + clientHeight >= scrollHeight && deltaY > 0)) {
-                    // достигнут край – можно разрешить, но чтобы не листать страницу, всё равно блокируем
-                    e.preventDefault();
-                    return false;
-                }
-                return true;
-            }
-            e.preventDefault();
-            return false;
-        }
-
-        // Запрещаем скролл на body и document
-        window.addEventListener('touchmove', preventScrollOnScrollable, { passive: false });
-        window.addEventListener('wheel', preventScrollOnScrollable, { passive: false });
-        // Также для безопасности блокируем колесо мыши
-        document.body.addEventListener('wheel', preventScrollOnScrollable, { passive: false });
-        
-        function preventScrollOnScrollable(e) {
-            const scrollable = document.querySelector('.playlist-content');
-            if (!scrollable) return;
-            const target = e.target;
-            const isInsideScrollable = scrollable.contains(target);
-            if (!isInsideScrollable) {
-                e.preventDefault();
-                return;
-            }
-            // Если внутри – проверяем, можно ли скроллить
-            const scrollTop = scrollable.scrollTop;
-            const scrollHeight = scrollable.scrollHeight;
-            const clientHeight = scrollable.clientHeight;
-            let deltaY = 0;
-            if (e.type === 'wheel') deltaY = e.deltaY;
-            else if (e.type === 'touchmove' && e.touches.length) {
-                // Для touchmove сложнее, но мы просто разрешаем внутри, не блокируем
-                return; // разрешаем
-            }
-            if (deltaY !== 0) {
-                if ((scrollTop <= 0 && deltaY < 0) || (scrollTop + clientHeight >= scrollHeight && deltaY > 0)) {
-                    e.preventDefault();
-                }
-            }
-        }
-        // Упростим: разрешаем все touchmove внутри .playlist-content, иначе блок
-        document.addEventListener('touchmove', function(e) {
-            const scrollable = document.querySelector('.playlist-content');
-            if (!scrollable || !scrollable.contains(e.target)) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        // ---------- ОТКЛЮЧЕНИЕ СИСТЕМНОГО КОНТЕКСТНОГО МЕНЮ, КОПИРОВАНИЯ, ПРИБЛИЖЕНИЯ ----------
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        // Запрет выделения текста (дополнительно)
-        document.addEventListener('selectstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        // Запрет жестов увеличения (уже есть в meta, но на всякий случай)
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-        // Разрешаем многопальцевое нажатие (не блокируем touchstart с несколькими пальцами)
-        // Ничего не делаем – по умолчанию разрешено
 
         // ---------- БАЗА ДАННЫХ (только треки) ----------
         const DB_NAME = 'PupokFMDB';
-        const DB_VERSION = 5; // увеличиваем версию, удаляем старые хранилища плейлистов
+        const DB_VERSION = 4; // увеличиваем версию, удаляем старые хранилища плейлистов
         let db = null;
 
         function openDB() {
@@ -616,12 +480,14 @@
                 request.onsuccess = () => { db = request.result; resolve(db); };
                 request.onupgradeneeded = (evt) => {
                     const db = evt.target.result;
+                    // Удаляем устаревшие хранилища, если они есть
                     if (db.objectStoreNames.contains('playlists')) {
                         db.deleteObjectStore('playlists');
                     }
                     if (db.objectStoreNames.contains('playlistTracks')) {
                         db.deleteObjectStore('playlistTracks');
                     }
+                    // Создаём хранилище треков, если его нет
                     if (!db.objectStoreNames.contains('tracks')) {
                         db.createObjectStore('tracks', { keyPath: 'id' });
                     }
@@ -637,4 +503,228 @@
             const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             let isDark = currentTheme === 'dark' || (currentTheme === 'system' && systemDark);
             document.body.classList.toggle('dark', isDark);
-            themeIcon.className
+            themeIcon.className = currentTheme === 'light' ? 'fas fa-sun' : (currentTheme === 'dark' ? 'fas fa-moon' : 'fas fa-circle-half-stroke');
+            document.getElementById('theme-color-meta').setAttribute('content', isDark ? '#1e1528' : '#b8a9d2');
+        }
+        themeToggle.addEventListener('click', () => {
+            if (currentTheme === 'light') currentTheme = 'dark';
+            else if (currentTheme === 'dark') currentTheme = 'system';
+            else currentTheme = 'light';
+            localStorage.setItem('pupokTheme', currentTheme);
+            applyTheme();
+        });
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+        // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
+        const audio = document.getElementById('global-audio');
+        const playlistEl = document.getElementById('playlist');
+        const emptyMsg = document.getElementById('empty-message');
+        const fileInput = document.getElementById('file-input');
+        const searchInput = document.getElementById('search-input');
+        const autoplayBtn = document.getElementById('autoplay-btn');
+        const repeatBtn = document.getElementById('repeat-btn');
+
+        let autoplayEnabled = localStorage.getItem('autoplay') === 'true';
+        let repeatMode = parseInt(localStorage.getItem('repeatMode') || '0');
+        const tracksMap = new Map(); // id -> { element, name, blob, objectURL, duration, slider, playBtn }
+        let activeTrackId = null;
+
+        // ---------- ФУНКЦИЯ ОБНОВЛЕНИЯ ПОДСКАЗКИ ПОИСКА ----------
+        function updateSearchPlaceholder() {
+            const total = tracksMap.size;
+            searchInput.placeholder = `Поиск (${total})`;
+        }
+
+        // ---------- ФУНКЦИИ ПЛЕЕРА (основные) ----------
+        function updateEmptyMessage() { 
+            const hasTracks = playlistEl.children.length > 0;
+            emptyMsg.style.display = hasTracks ? 'none' : 'block';
+            updateSearchPlaceholder();
+        }
+        
+        function updatePlayButton(id, isPlaying) {
+            const t = tracksMap.get(id); if(!t) return;
+            t.playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+            t.playBtn.classList.toggle('playing', isPlaying);
+        }
+        
+        function updateSliderFill(slider, value, max) {
+            if (!slider) return;
+            const percent = max > 0 ? (value / max) * 100 : 0;
+            slider.style.setProperty('--fill-percent', percent + '%');
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            if (!activeTrackId) return;
+            const track = tracksMap.get(activeTrackId);
+            if (!track) return;
+            const current = audio.currentTime;
+            const duration = audio.duration || track.duration;
+            track.slider.value = current;
+            updateSliderFill(track.slider, current, duration);
+            if (!isNaN(duration) && duration > 0) track.slider.max = Math.floor(duration);
+        });
+
+        audio.addEventListener('ended', () => {
+            if (!activeTrackId) return;
+            if (repeatMode === 2) { audio.currentTime = 0; audio.play().catch(()=>{}); return; }
+            const track = tracksMap.get(activeTrackId);
+            track.slider.value = 0;
+            updateSliderFill(track.slider, 0, track.slider.max);
+            updatePlayButton(activeTrackId, false);
+            if (autoplayEnabled) {
+                const nextId = getNextVisibleTrack(activeTrackId);
+                if (nextId) activateTrack(nextId, true);
+            }
+        });
+
+        function getNextVisibleTrack(currentId) {
+            const items = Array.from(playlistEl.children).filter(el => el.style.display !== 'none');
+            const idx = items.findIndex(el => el.dataset.id === currentId);
+            if (idx === -1) return null;
+            let next = idx + 1;
+            if (next >= items.length) next = repeatMode === 1 ? 0 : -1;
+            return next >= 0 ? items[next]?.dataset.id : null;
+        }
+
+        function activateTrack(id, autoPlay = true) {
+            const track = tracksMap.get(id);
+            if (!track) return;
+            if (activeTrackId === id) { if (autoPlay && audio.paused) audio.play().catch(()=>{}); return; }
+            if (activeTrackId) {
+                const prev = tracksMap.get(activeTrackId);
+                if (prev) { prev.slider.value = 0; updateSliderFill(prev.slider, 0, prev.slider.max); updatePlayButton(activeTrackId, false); }
+            }
+            audio.src = track.objectURL;
+            audio.load();
+            audio.currentTime = 0;
+            activeTrackId = id;
+            if (track.duration) track.slider.max = Math.floor(track.duration);
+            audio.addEventListener('loadedmetadata', function onMeta() {
+                const dur = audio.duration;
+                if (dur && !isNaN(dur)) { track.duration = dur; track.slider.max = Math.floor(dur); }
+                audio.removeEventListener('loadedmetadata', onMeta);
+            });
+            track.slider.value = 0;
+            updateSliderFill(track.slider, 0, track.slider.max);
+            if (autoPlay) { audio.play().catch(()=>{}); updatePlayButton(id, true); }
+            else updatePlayButton(id, false);
+        }
+
+        function togglePlay(id) {
+            const track = tracksMap.get(id); if(!track) return;
+            if (activeTrackId !== id) activateTrack(id, true);
+            else { if(audio.paused) { audio.play(); updatePlayButton(id, true); } else { audio.pause(); updatePlayButton(id, false); } }
+        }
+
+        async function deleteTrack(id) {
+            const track = tracksMap.get(id); if(!track) return;
+            if (activeTrackId === id) { audio.pause(); audio.src = ''; activeTrackId = null; }
+            await deleteTrackFromDB(id);
+            URL.revokeObjectURL(track.objectURL);
+            track.element.remove();
+            tracksMap.delete(id);
+            updateEmptyMessage();
+            filterTracks();
+        }
+
+        // ---------- РАБОТА С БД (треки) ----------
+        async function addTrackToDB(track) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks','readwrite'); const r = tx.objectStore('tracks').put(track); r.onsuccess=res; r.onerror=rej; }); }
+        async function getAllTracksFromDB() { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks'); const r = tx.objectStore('tracks').getAll(); r.onsuccess=()=>res(r.result); r.onerror=rej; }); }
+        async function deleteTrackFromDB(id) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks','readwrite'); const r = tx.objectStore('tracks').delete(id); r.onsuccess=res; r.onerror=rej; }); }
+
+        // ---------- UI ТРЕКОВ ----------
+        function createTrackElement(track) {
+            const item = document.createElement('div'); item.className = 'track-item'; item.dataset.id = track.id;
+            const row = document.createElement('div'); row.className = 'track-row';
+            const actionLeft = document.createElement('div'); actionLeft.className = 'action-left';
+            const deleteBtn = document.createElement('div'); deleteBtn.className = 'delete-btn'; deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            deleteBtn.addEventListener('click', (e)=>{ e.stopPropagation(); showDeleteConfirmation(track.id); });
+            actionLeft.appendChild(deleteBtn);
+            const infoDiv = document.createElement('div'); infoDiv.className = 'track-info';
+            const nameDiv = document.createElement('div'); nameDiv.className = 'track-name'; nameDiv.textContent = track.name;
+            const slider = document.createElement('input'); slider.type = 'range'; slider.className = 'progress-slider'; slider.min = 0; slider.max = track.duration||0; slider.value=0; slider.step=0.1;
+            infoDiv.appendChild(nameDiv); infoDiv.appendChild(slider);
+            const playBtn = document.createElement('div'); playBtn.className = 'play-pause-btn'; playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            row.appendChild(actionLeft); row.appendChild(infoDiv); row.appendChild(playBtn);
+            item.appendChild(row);
+            return { item, deleteBtn, playBtn, slider };
+        }
+
+        function addTrackToUI(track) {
+            const { item, playBtn, slider } = createTrackElement(track);
+            playlistEl.appendChild(item);
+            tracksMap.set(track.id, { element: item, name: track.name, blob: track.blob, objectURL: URL.createObjectURL(track.blob), duration: track.duration, slider, playBtn });
+            playBtn.addEventListener('click', ()=> togglePlay(track.id));
+            slider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                updateSliderFill(slider, val, slider.max);
+                if (activeTrackId === track.id) audio.currentTime = val;
+                else { activateTrack(track.id, false); audio.currentTime = val; updatePlayButton(track.id, false); }
+            });
+            updatePlayButton(track.id, false);
+            updateSliderFill(slider, 0, slider.max);
+            updateEmptyMessage();
+            filterTracks();
+        }
+
+        function filterTracks() {
+            const q = searchInput.value.trim().toLowerCase();
+            tracksMap.forEach((t) => t.element.style.display = (!q || t.name.toLowerCase().includes(q)) ? 'block' : 'none');
+        }
+        searchInput.addEventListener('input', filterTracks);
+
+        // Загрузка файлов
+        fileInput.addEventListener('change', async (e) => {
+            for (const file of Array.from(e.target.files)) {
+                if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|flac)$/i)) { alert(`Не аудио: ${file.name}`); continue; }
+                let duration; try { duration = await getAudioDuration(file); } catch { duration = null; }
+                if (!duration) { alert(`Ошибка чтения: ${file.name}`); continue; }
+                const id = crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36);
+                const track = { id, name: file.name, blob: file, duration };
+                await addTrackToDB(track);
+                addTrackToUI(track);
+            }
+            fileInput.value = '';
+        });
+        function getAudioDuration(blob) {
+            return new Promise((resolve) => {
+                const url = URL.createObjectURL(blob); const a = new Audio(url);
+                a.addEventListener('loadedmetadata', ()=>{ resolve(a.duration); URL.revokeObjectURL(url); });
+                a.addEventListener('error', ()=>{ resolve(null); URL.revokeObjectURL(url); });
+            });
+        }
+
+        // Инициализация кнопок плеера
+        autoplayBtn.addEventListener('click', ()=>{ autoplayEnabled=!autoplayEnabled; localStorage.setItem('autoplay', autoplayEnabled); autoplayBtn.classList.toggle('active', autoplayEnabled); });
+        repeatBtn.addEventListener('click', ()=>{ repeatMode=(repeatMode+1)%3; localStorage.setItem('repeatMode', repeatMode); updateRepeatButton(); });
+        function updateRepeatButton() {
+            repeatBtn.classList.remove('active','repeat-one');
+            if(repeatMode===1) repeatBtn.classList.add('active');
+            if(repeatMode===2) repeatBtn.classList.add('active','repeat-one');
+        }
+        updateRepeatButton();
+        autoplayBtn.classList.toggle('active', autoplayEnabled);
+
+        // Загрузка начальных данных
+        (async function init(){
+            await openDB();
+            applyTheme();
+            const tracks = await getAllTracksFromDB();
+            tracks.forEach(t => addTrackToUI(t));
+            updateSearchPlaceholder();
+        })();
+
+        // Вспомогательные функции для удаления трека
+        function showDeleteConfirmation(id) {
+            const track = tracksMap.get(id); if(!track) return;
+            const left = track.element.querySelector('.action-left');
+            left.innerHTML = `<div class="confirm-btn"><i class="fas fa-check"></i></div><div class="cancel-btn"><i class="fas fa-times"></i></div>`;
+            left.querySelector('.confirm-btn').addEventListener('click', (e)=>{ e.stopPropagation(); deleteTrack(id); });
+            left.querySelector('.cancel-btn').addEventListener('click', (e)=>{ e.stopPropagation(); left.innerHTML = `<div class="delete-btn"><i class="fas fa-trash-alt"></i></div>`; left.querySelector('.delete-btn').addEventListener('click', (e2)=>{ e2.stopPropagation(); showDeleteConfirmation(id); }); });
+        }
+
+    })();
+</script>
+</body>
+</html>
