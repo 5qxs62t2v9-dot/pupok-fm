@@ -29,11 +29,10 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100vh;
+            height: 100%;
             position: fixed;
             top: 0;
             left: 0;
-            background: transparent; /* фон задаётся через body градиент */
         }
 
         * {
@@ -74,9 +73,9 @@
         }
 
         body.dark {
-            --bg-gradient-start: #1e1428;
-            --bg-gradient-end: #2a1e38;
-            --container-bg: rgba(30, 20, 40, 0.95);
+            --bg-gradient-start: #1e1028;
+            --bg-gradient-end: #2e1a40;
+            --container-bg: rgba(25, 15, 35, 0.95);
             --text-primary: #ede4f7;
             --text-secondary: #d2c4e0;
             --text-muted: #b09bc0;
@@ -101,17 +100,16 @@
         /* ---------- ОСНОВНОЙ КОНТЕЙНЕР ---------- */
         .player-container {
             width: 100%;
-            height: 100vh;
+            height: 100%;
             background: var(--container-bg);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             box-shadow: var(--shadow);
-            padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
+            padding: max(24px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) 16px;
             display: flex;
             flex-direction: column;
             border-radius: 36px;
             overflow: hidden;
-            position: relative;
         }
 
         /* ---------- ХЭДЕР ---------- */
@@ -354,13 +352,23 @@
             text-overflow: ellipsis;
         }
 
-        /* ----- ПРОГРЕСС-БАР С ЗАПОЛНЕНИЕМ НА САМОЙ ПОЛОСКЕ ----- */
+        /* ----- ПРОГРЕСС-БАР (с отдельным заполнением, без сквадрачивания) ----- */
+        .progress-container {
+            position: relative;
+            width: 100%;
+            height: 6px;
+        }
+
         .progress-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 6px;
             -webkit-appearance: none;
             background: transparent;
             cursor: pointer;
+            z-index: 2;
         }
 
         .progress-slider:focus {
@@ -370,7 +378,7 @@
         .progress-slider::-webkit-slider-runnable-track {
             width: 100%;
             height: 6px;
-            background: var(--slider-track);
+            background: transparent;
             border-radius: 20px;
         }
 
@@ -384,15 +392,31 @@
             border: 2px solid var(--accent);
             margin-top: -6px;
             position: relative;
-            z-index: 2;
+            z-index: 3;
         }
 
-        /* заполнение слева от бегунка — через CSS переменную */
-        .progress-slider {
-            background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill-percent, 0%), transparent var(--fill-percent, 0%));
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: left center;
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 1;
+            transition: width 0.05s linear;
+        }
+
+        .progress-track-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: var(--slider-track);
+            border-radius: 20px;
+            z-index: 0;
         }
 
         .play-pause-btn {
@@ -444,9 +468,9 @@
             background: var(--container-bg);
             backdrop-filter: blur(25px);
             width: 100%;
-            height: 100vh;
+            height: 100%;
             border-radius: 0;
-            padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
+            padding: max(24px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) 16px;
             display: flex;
             flex-direction: column;
             box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
@@ -766,7 +790,7 @@
     <div class="playlists-panel" id="playlists-panel"></div>
 </div>
 
-<!-- Модалка ввода текста (кастомный prompt) -->
+<!-- Модалка ввода текста -->
 <div class="input-modal" id="input-modal">
     <div class="input-panel">
         <input type="text" id="modal-input-field" placeholder="Название">
@@ -841,7 +865,7 @@
             let isDark = currentTheme === 'dark' || (currentTheme === 'system' && systemDark);
             document.body.classList.toggle('dark', isDark);
             themeIcon.className = currentTheme === 'light' ? 'fas fa-sun' : (currentTheme === 'dark' ? 'fas fa-moon' : 'fas fa-circle-half-stroke');
-            document.getElementById('theme-color-meta').setAttribute('content', isDark ? '#1e1428' : '#b8a9d2');
+            document.getElementById('theme-color-meta').setAttribute('content', isDark ? '#1e1028' : '#b8a9d2');
         }
         themeToggle.addEventListener('click', () => {
             if (currentTheme === 'light') currentTheme = 'dark';
@@ -874,7 +898,7 @@
 
         let autoplayEnabled = localStorage.getItem('autoplay') === 'true';
         let repeatMode = parseInt(localStorage.getItem('repeatMode') || '0');
-        const tracksMap = new Map();
+        const tracksMap = new Map(); // id -> { element, name, blob, objectURL, duration, slider, fillEl, playBtn }
         let activeTrackId = null;
         let currentPlaylistId = null;
         let pendingAddToPlaylistId = null;
@@ -914,10 +938,11 @@
             t.playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
             t.playBtn.classList.toggle('playing', isPlaying);
         }
-        function updateSliderFill(slider, value, max) {
-            if (!slider) return;
+        function updateSliderFill(slider, fillEl, value, max) {
+            if (!fillEl) return;
             const percent = max > 0 ? (value / max) * 100 : 0;
-            slider.style.setProperty('--fill-percent', percent + '%');
+            fillEl.style.width = percent + '%';
+            slider.value = value;
         }
 
         audio.addEventListener('timeupdate', () => {
@@ -926,8 +951,7 @@
             if (!track) return;
             const current = audio.currentTime;
             const duration = audio.duration || track.duration;
-            track.slider.value = current;
-            updateSliderFill(track.slider, current, duration);
+            updateSliderFill(track.slider, track.fillEl, current, duration);
             if (!isNaN(duration) && duration > 0) track.slider.max = Math.floor(duration);
         });
 
@@ -936,7 +960,7 @@
             if (repeatMode === 2) { audio.currentTime = 0; audio.play().catch(()=>{}); return; }
             const track = tracksMap.get(activeTrackId);
             track.slider.value = 0;
-            updateSliderFill(track.slider, 0, track.slider.max);
+            updateSliderFill(track.slider, track.fillEl, 0, track.slider.max);
             updatePlayButton(activeTrackId, false);
             if (autoplayEnabled) {
                 const nextId = getNextVisibleTrack(activeTrackId);
@@ -959,7 +983,7 @@
             if (activeTrackId === id) { if (autoPlay && audio.paused) audio.play().catch(()=>{}); return; }
             if (activeTrackId) {
                 const prev = tracksMap.get(activeTrackId);
-                if (prev) { prev.slider.value = 0; updateSliderFill(prev.slider, 0, prev.slider.max); updatePlayButton(activeTrackId, false); }
+                if (prev) { prev.slider.value = 0; updateSliderFill(prev.slider, prev.fillEl, 0, prev.slider.max); updatePlayButton(activeTrackId, false); }
             }
             audio.src = track.objectURL;
             audio.load();
@@ -972,7 +996,7 @@
                 audio.removeEventListener('loadedmetadata', onMeta);
             });
             track.slider.value = 0;
-            updateSliderFill(track.slider, 0, track.slider.max);
+            updateSliderFill(track.slider, track.fillEl, 0, track.slider.max);
             if (autoPlay) { audio.play().catch(()=>{}); updatePlayButton(id, true); }
             else updatePlayButton(id, false);
         }
@@ -1010,27 +1034,36 @@
             actionLeft.appendChild(deleteBtn);
             const infoDiv = document.createElement('div'); infoDiv.className = 'track-info';
             const nameDiv = document.createElement('div'); nameDiv.className = 'track-name'; nameDiv.textContent = track.name;
+            
+            const progressContainer = document.createElement('div'); progressContainer.className = 'progress-container';
+            const trackBg = document.createElement('div'); trackBg.className = 'progress-track-bg';
+            const fill = document.createElement('div'); fill.className = 'progress-fill';
             const slider = document.createElement('input'); slider.type = 'range'; slider.className = 'progress-slider'; slider.min = 0; slider.max = track.duration||0; slider.value=0; slider.step=0.1;
-            infoDiv.appendChild(nameDiv); infoDiv.appendChild(slider);
+            progressContainer.appendChild(trackBg);
+            progressContainer.appendChild(fill);
+            progressContainer.appendChild(slider);
+            
+            infoDiv.appendChild(nameDiv);
+            infoDiv.appendChild(progressContainer);
             const playBtn = document.createElement('div'); playBtn.className = 'play-pause-btn'; playBtn.innerHTML = '<i class="fas fa-play"></i>';
             row.appendChild(actionLeft); row.appendChild(infoDiv); row.appendChild(playBtn);
             item.appendChild(row);
-            return { item, deleteBtn, playBtn, slider };
+            return { item, deleteBtn, playBtn, slider, fillEl: fill };
         }
 
         function addTrackToUI(track) {
-            const { item, playBtn, slider } = createTrackElement(track);
+            const { item, playBtn, slider, fillEl } = createTrackElement(track);
             playlistEl.appendChild(item);
-            tracksMap.set(track.id, { element: item, name: track.name, blob: track.blob, objectURL: URL.createObjectURL(track.blob), duration: track.duration, slider, playBtn });
+            tracksMap.set(track.id, { element: item, name: track.name, blob: track.blob, objectURL: URL.createObjectURL(track.blob), duration: track.duration, slider, fillEl, playBtn });
             playBtn.addEventListener('click', ()=> togglePlay(track.id));
             slider.addEventListener('input', (e) => {
                 const val = parseFloat(e.target.value);
-                updateSliderFill(slider, val, slider.max);
+                updateSliderFill(slider, fillEl, val, slider.max);
                 if (activeTrackId === track.id) audio.currentTime = val;
                 else { activateTrack(track.id, false); audio.currentTime = val; updatePlayButton(track.id, false); }
             });
             updatePlayButton(track.id, false);
-            updateSliderFill(slider, 0, slider.max);
+            updateSliderFill(slider, fillEl, 0, slider.max);
             updateEmptyMessage();
             filterTracks();
         }
@@ -1248,7 +1281,9 @@
             document.getElementById('detail-search').placeholder = `Поиск (${tracks.length})`;
             container.innerHTML = tracks.map(t=> {
                 const isActive = (activeTrackId === t.id);
-                const isPlaying = isActive && !audio.paused;
+                const currentTime = isActive ? audio.currentTime : 0;
+                const duration = t.duration || 0;
+                const fillPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
                 return `
                 <div class="track-item" data-id="${t.id}">
                     <div class="track-row">
@@ -1257,13 +1292,17 @@
                         </div>
                         <div class="track-info">
                             <div class="track-name">${t.name}</div>
-                            <input type="range" class="progress-slider" min="0" max="${t.duration||0}" value="${isActive ? audio.currentTime : 0}" step="0.1" data-id="${t.id}">
+                            <div class="progress-container">
+                                <div class="progress-track-bg"></div>
+                                <div class="progress-fill" style="width: ${fillPercent}%;"></div>
+                                <input type="range" class="progress-slider" min="0" max="${duration}" value="${currentTime}" step="0.1" data-id="${t.id}">
+                            </div>
                         </div>
-                        <div class="play-pause-btn ${isPlaying ? 'playing' : ''}" data-id="${t.id}">${isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>'}</div>
+                        <div class="play-pause-btn ${isActive && !audio.paused ? 'playing' : ''}" data-id="${t.id}">${isActive && !audio.paused ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>'}</div>
                     </div>
                 </div>
             `}).join('');
-            // Удаление с подтверждением
+            
             container.querySelectorAll('.delete-btn').forEach(b=>b.addEventListener('click', (e)=>{
                 e.stopPropagation();
                 const tid = b.dataset.id;
@@ -1282,7 +1321,7 @@
                     loadPlaylistTracks(playlistId, document.getElementById('detail-search').value);
                 });
             }));
-            // Кнопки play/pause
+            
             container.querySelectorAll('.play-pause-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const tid = btn.dataset.id;
@@ -1292,25 +1331,20 @@
                         if (tData) { addTrackToUI(tData); track = tracksMap.get(tid); }
                     }
                     if (track) togglePlay(tid);
-                    // обновим кнопку и прогресс после взаимодействия
                     setTimeout(() => loadPlaylistTracks(playlistId, document.getElementById('detail-search').value), 50);
                 });
             });
-            // Прогресс-бары
+            
             container.querySelectorAll('.progress-slider').forEach(slider => {
                 const tid = slider.dataset.id;
+                const fill = slider.parentElement.querySelector('.progress-fill');
                 const track = tracksMap.get(tid);
-                if (track) {
-                    slider.addEventListener('input', (e) => {
-                        const val = parseFloat(e.target.value);
-                        updateSliderFill(slider, val, slider.max);
-                        if (activeTrackId === tid) audio.currentTime = val;
-                        else { activateTrack(tid, false); audio.currentTime = val; updatePlayButton(tid, false); }
-                    });
-                }
-                const currentVal = (activeTrackId === tid) ? audio.currentTime : 0;
-                slider.value = currentVal;
-                updateSliderFill(slider, currentVal, slider.max);
+                slider.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    fill.style.width = (val / slider.max * 100) + '%';
+                    if (activeTrackId === tid) audio.currentTime = val;
+                    else if (track) { activateTrack(tid, false); audio.currentTime = val; updatePlayButton(tid, false); }
+                });
             });
         }
 
