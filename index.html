@@ -2,729 +2,660 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Пупок FM</title>
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Пупок FM">
-    <meta name="theme-color" id="theme-color-meta" content="#b8a9d2">
-    
-    <!-- iOS / Apple touch icon – используем только 512x512 -->
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
-    <link rel="apple-touch-icon" href="icons/icon-512x512.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96x96.png">
-    <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="shortcut icon" href="favicon.ico">
-    
-    <link rel="manifest" href="manifest.json">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>ClickAss — Пукатый персик</title>
     <style>
-        /* ---------- СБРОС И БАЗА ---------- */
-        html, body {
-            overscroll-behavior: none;
-            overflow: hidden;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
             -webkit-tap-highlight-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* ---------- ПЕРЕМЕННЫЕ (МЯГКИЕ ЦВЕТА) ---------- */
+        /* Базовые настройки — без прокрутки и белых полос */
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;   /* убираем скролл всей страницы */
+        }
+
+        /* Адаптивная тема (светлая/тёмная) */
+        :root {
+            --bg-gradient-light: linear-gradient(145deg, #fff2e0 0%, #ffddb0 100%);
+            --card-light: rgba(255, 245, 225, 0.92);
+            --text-light: #3b2a1f;
+            --accent-light: #ff9f4a;
+            --peach-shadow-light: 0 20px 30px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(255, 160, 80, 0.4);
+            --btn-light: #f39c12;
+            --btn-hover-light: #e67e22;
+        }
+
+        :root {
+            --bg-gradient-dark: linear-gradient(135deg, #1a2a2a 0%, #0e1a1e 100%);
+            --card-dark: rgba(25, 30, 35, 0.92);
+            --text-dark: #f7eedb;
+            --accent-dark: #e67e22;
+            --peach-shadow-dark: 0 20px 30px rgba(0, 0, 0, 0.6), 0 0 0 4px rgba(230, 126, 34, 0.5);
+            --btn-dark: #c96f1e;
+            --btn-hover-dark: #b55d12;
+        }
+
         body {
-            --bg-gradient-start: #f3e8fd;
-            --bg-gradient-end: #e2d9f0;
-            --container-bg: rgba(245, 240, 250, 0.8);
-            --text-primary: #2e1a47;
-            --text-secondary: #4a2e62;
-            --text-muted: #7a6a8a;
-            --accent: #9b7bc1;
-            --accent-light: #bda0dc;
-            --card-bg: rgba(255, 245, 255, 0.6);
-            --card-border: rgba(255, 250, 255, 0.7);
-            --shadow: 0 25px 40px -20px rgba(90, 40, 120, 0.15);
-            --delete-color: #e57373;
-            --slider-track: rgba(160, 130, 200, 0.2);
-            --slider-thumb: #ffffff;
-            --scroll-thumb: #c2addb;
-            --scroll-track: #ede4f5;
-            --icon-bg: #ffffffd0;
-            --panel-bg: rgba(250, 245, 255, 0.8);
-            --control-btn-bg: var(--icon-bg);
-            --control-btn-color: var(--accent);
-            --panel-separator: rgba(130, 100, 160, 0.1);
-            
-            background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            background: var(--bg-gradient-light);
+            color: var(--text-light);
             transition: background 0.2s, color 0.2s;
-        }
-
-        body.dark {
-            --bg-gradient-start: #1e1528;
-            --bg-gradient-end: #2a1f36;
-            --container-bg: rgba(30, 20, 40, 0.95);
-            --text-primary: #ede4f7;
-            --text-secondary: #d2c4e0;
-            --text-muted: #b09bc0;
-            --accent: #b494d9;
-            --accent-light: #d2b8ed;
-            --card-bg: rgba(50, 35, 65, 0.7);
-            --card-border: rgba(255, 245, 255, 0.08);
-            --shadow: 0 25px 40px -20px rgba(0,0,0,0.5);
-            --delete-color: #f49797;
-            --slider-track: rgba(200, 170, 220, 0.2);
-            --slider-thumb: #e8d9f2;
-            --scroll-thumb: #9b7bc1;
-            --scroll-track: #3e2c4a;
-            --icon-bg: #372b45;
-            --panel-bg: rgba(40, 25, 55, 0.9);
-            --control-btn-bg: #3d2d50;
-            --control-btn-color: #c7b0e0;
-            --panel-separator: rgba(220, 190, 250, 0.15);
-        }
-
-        /* ---------- ОСНОВНОЙ КОНТЕЙНЕР ---------- */
-        .player-container {
-            width: 100%;
-            height: 100vh;
-            background: var(--container-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            box-shadow: var(--shadow);
-            padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
-            display: flex;
-            flex-direction: column;
-            border-radius: 36px;
-            overflow: hidden;
-        }
-
-        /* ---------- ХЭДЕР ---------- */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            padding: 0 4px;
-            flex-shrink: 0;
-        }
-
-        .theme-toggle, .upload-btn {
-            background: var(--icon-bg);
-            width: 48px;
-            height: 48px;
-            border-radius: 32px;
+            font-family: 'Segoe UI', 'Poppins', 'Montserrat', system-ui, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.03);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-            color: var(--accent);
-            font-size: 22px;
-            flex-shrink: 0;
-            backdrop-filter: blur(5px);
+            height: 100%;
+            width: 100%;
         }
 
-        .theme-toggle:active, .upload-btn:active {
-            transform: scale(0.94);
-            background: var(--card-bg);
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: var(--bg-gradient-dark);
+                color: var(--text-dark);
+            }
+            .card, .modal-content {
+                background: var(--card-dark);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 200, 120, 0.2);
+            }
+            .peach {
+                box-shadow: var(--peach-shadow-dark);
+            }
+            .shop-btn, .upgrade-btn {
+                background: var(--btn-dark);
+            }
+            .shop-btn:hover, .upgrade-btn:hover {
+                background: var(--btn-hover-dark);
+            }
         }
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+        @media (prefers-color-scheme: light) {
+            body {
+                background: var(--bg-gradient-light);
+                color: var(--text-light);
+            }
+            .card, .modal-content {
+                background: var(--card-light);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 180, 80, 0.5);
+            }
+            .peach {
+                box-shadow: var(--peach-shadow-light);
+            }
+            .shop-btn, .upgrade-btn {
+                background: var(--btn-light);
+            }
+            .shop-btn:hover, .upgrade-btn:hover {
+                background: var(--btn-hover-light);
+            }
+        }
+
+        /* основной контейнер — без скролла, по центру */
+        .container {
+            width: 100%;
+            max-width: 580px;
+            margin: 0 auto;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .card {
+            border-radius: 70px 70px 60px 60px;
+            padding: 20px 18px 25px;
+            width: 100%;
             text-align: center;
-            flex: 1;
+            transition: all 0.2s;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
         }
 
-        #file-input {
-            display: none;
+        .score-area {
+            margin-bottom: 10px;
         }
 
-        /* ---------- ПОИСК + УПРАВЛЕНИЕ ---------- */
-        .search-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
-            flex-shrink: 0;
-        }
-
-        .search-panel {
-            background: var(--panel-bg);
-            border-radius: 40px;
-            padding: 10px 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: none;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            flex: 1;
-            min-width: 0;
-        }
-
-        .search-panel i {
-            color: var(--accent);
-            font-size: 18px;
-            opacity: 0.9;
-        }
-
-        #search-input {
-            background: transparent;
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 17px;
-            color: var(--text-primary);
-        }
-
-        #search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .playback-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .control-btn {
-            background: var(--control-btn-bg);
-            width: 48px;
-            height: 48px;
-            border-radius: 32px;
+        .score-title {
+            font-size: 1.3rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: 0.1s;
-            border: none;
-            color: var(--control-btn-color);
-            font-size: 22px;
-            backdrop-filter: blur(5px);
+            gap: 8px;
+            letter-spacing: 1px;
         }
 
-        .control-btn:active {
+        .score-value {
+            font-size: 3.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f5b042, #e67e22);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .peach {
+            font-size: 170px;
+            cursor: pointer;
+            transition: transform 0.07s linear, filter 0.1s;
+            display: inline-block;
+            margin: 5px 0;
+            filter: drop-shadow(0 12px 18px rgba(0,0,0,0.25));
+        }
+        .peach:active {
             transform: scale(0.92);
         }
-
-        .control-btn.active {
-            background: var(--accent);
-            color: white;
+        .peach-glitter {
+            animation: glitterPulse 0.35s ease-out;
+        }
+        @keyframes glitterPulse {
+            0% { text-shadow: 0 0 0px gold; filter: brightness(1);}
+            50% { text-shadow: 0 0 18px gold, 0 0 25px #ffaa33; filter: brightness(1.18);}
+            100% { text-shadow: 0 0 0px gold; filter: brightness(1);}
         }
 
-        .control-btn.repeat-one {
-            position: relative;
+        /* статы — компактно + новые фишки */
+        .stats-grid {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 50px;
+            padding: 12px 12px;
+            margin: 12px 0;
+            backdrop-filter: blur(4px);
         }
-        .control-btn.repeat-one::after {
-            content: '1';
-            position: absolute;
-            font-size: 12px;
-            font-weight: bold;
-            bottom: 4px;
-            right: 8px;
-            color: currentColor;
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 8px;
         }
-
-        /* ---------- ПАНЕЛЬ ПЛЕЙЛИСТА (основная) ---------- */
-        .playlist-panel {
-            background: var(--panel-bg);
-            border-radius: 36px;
-            padding: 18px 0 18px 14px;
-            border: none;
-            backdrop-filter: blur(5px);
+        .stat-item {
             flex: 1;
+            min-width: 85px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50px;
+            padding: 6px 5px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+        .stat-number {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+        .extra-stats {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .extra-badge {
+            background: rgba(0,0,0,0.2);
+            border-radius: 40px;
+            padding: 4px 12px;
+        }
+
+        .shop-btn {
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            margin-top: 8px;
+            width: 85%;
+        }
+
+        /* Модалка с прокруткой внутри */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            width: 92%;
+            max-width: 520px;
+            max-height: 85vh;
+            border-radius: 48px;
+            padding: 18px 18px 25px;
+            overflow-y: auto;
+            position: relative;
+            animation: fadeSlide 0.2s ease;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(25px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ffa559;
+        }
+        .modal-header h2 {
+            font-size: 1.8rem;
+        }
+        .close-modal {
+            font-size: 2.2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: inherit;
+        }
+        .upgrades-grid {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-
-        .playlist-content {
-            flex: 1;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--scroll-thumb) var(--scroll-track);
-            -webkit-overflow-scrolling: touch;
-            padding-right: 6px;
-        }
-
-        .playlist-content::-webkit-scrollbar {
-            width: 6px;
-        }
-        .playlist-content::-webkit-scrollbar-track {
-            background: var(--scroll-track);
-            border-radius: 10px;
-        }
-        .playlist-content::-webkit-scrollbar-thumb {
-            background: var(--scroll-thumb);
-            border-radius: 10px;
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 40px 20px;
-            margin-right: 12px;
-            color: var(--text-muted);
-            font-size: 18px;
-            font-weight: 500;
-        }
-
-        /* ---------- ЭЛЕМЕНТ ТРЕКА ---------- */
-        .track-item {
-            background: var(--card-bg);
-            border-radius: 28px;
-            padding: 16px;
-            margin-bottom: 12px;
-            margin-right: 8px;
-            border: none;
-            backdrop-filter: blur(5px);
-        }
-
-        .track-row {
-            display: flex;
-            align-items: center;
             gap: 12px;
         }
+        .upgrade-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 40px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .upgrade-info {
+            flex: 2;
+            text-align: left;
+        }
+        .upgrade-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .upgrade-desc {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+        .upgrade-cost {
+            font-weight: bold;
+            background: rgba(0,0,0,0.3);
+            border-radius: 30px;
+            padding: 4px 12px;
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+        .upgrade-btn {
+            border: none;
+            font-weight: bold;
+            padding: 8px 22px;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 0.9rem;
+        }
+        .upgrade-btn:disabled {
+            opacity: 0.45;
+            transform: none;
+            cursor: not-allowed;
+        }
+        footer {
+            margin-top: 12px;
+            font-size: 0.6rem;
+            opacity: 0.7;
+        }
 
-        .action-left {
-            width: 40px;
+        /* контейнер для тостов (не перекрывают друг друга) */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1100;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 4px;
-            flex-shrink: 0;
+            gap: 8px;
+            pointer-events: none;
+            max-width: 90%;
         }
-
-        .delete-btn, .confirm-btn, .cancel-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--icon-bg);
-            cursor: pointer;
-            transition: 0.1s;
-            border: none;
-            font-size: 18px;
-        }
-
-        .delete-btn { color: var(--delete-color); }
-        .delete-btn:active, .confirm-btn:active, .cancel-btn:active { transform: scale(0.9); }
-        .confirm-btn { color: #6fcf97; }
-        .cancel-btn { color: var(--delete-color); }
-
-        .track-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .track-name {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 16px;
-            margin-bottom: 10px;
+        .toast {
+            background: #ffb347cc;
+            backdrop-filter: blur(12px);
+            color: #2c1c0c;
+            padding: 8px 24px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 5px 15px black;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            animation: fadeInOut 1.2s forwards;
         }
-
-        /* ----- ПРОГРЕСС-БАР С ЗАПОЛНЕНИЕМ (исправлено: кружок не обрезается) ----- */
-        .progress-slider {
-            width: 100%;
-            height: 6px;
-            -webkit-appearance: none;
-            background: transparent;
-            cursor: pointer;
-            border-radius: 20px;
-            /* overflow: hidden; — НЕ используем, иначе thumb овальный */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px);}
+            15% { opacity: 1; transform: translateY(0);}
+            85% { opacity: 1; transform: translateY(0);}
+            100% { opacity: 0; transform: translateY(-15px);}
         }
-
-        .progress-slider:focus {
-            outline: none;
+        @media (max-width: 500px) {
+            .peach { font-size: 130px; }
+            .score-value { font-size: 2.7rem; }
+            .stats-row { flex-direction: row; flex-wrap: wrap; }
+            .stat-item { min-width: 70px; }
         }
-
-        .progress-slider::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            background: var(--slider-track);
-            border-radius: 20px;
-        }
-
-        .progress-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 18px;
-            background: var(--slider-thumb);
-            box-shadow: 0 2px 10px rgba(155, 123, 193, 0.5);
-            border: 2px solid var(--accent);
-            margin-top: -6px;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* заполнение слева от бегунка — задаётся через JS */
-        .progress-slider {
-            background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill-percent, 0%), transparent var(--fill-percent, 0%));
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: left center;
-            border-radius: 20px;
-        }
-
-        .play-pause-btn {
-            color: var(--accent);
-            font-size: 24px;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 32px;
-            background: var(--icon-bg);
-            box-shadow: 0 6px 12px rgba(155, 123, 193, 0.15);
-            cursor: pointer;
-            flex-shrink: 0;
-            border: none;
-            backdrop-filter: blur(5px);
-        }
-
-        .play-pause-btn:active { transform: scale(0.92); }
-        .play-pause-btn.playing {
-            color: white;
-            background: var(--accent);
-        }
-
-        .hidden { display: none !important; }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-<div class="player-container">
-    <!-- Хедер -->
-    <div class="header">
-        <div class="theme-toggle" id="theme-toggle"><i class="fas fa-sun"></i></div>
-        <h1>Пупок FM</h1>
-        <label for="file-input" class="upload-btn"><i class="fas fa-plus"></i></label>
-        <input type="file" id="file-input" accept=".mp3,.flac,audio/mpeg,audio/flac" multiple>
-    </div>
 
-    <!-- Поиск + кнопки управления (без плейлистов) -->
-    <div class="search-row">
-        <div class="search-panel">
-            <i class="fas fa-search"></i>
-            <input type="text" id="search-input" placeholder="Поиск (0)" autocomplete="off">
+<div class="container">
+    <div class="card">
+        <div class="score-area">
+            <div class="score-title">
+                <span>🍑 ПУКОВ И КАКОВ 💩</span>
+            </div>
+            <div class="score-value" id="scoreDisplay">0</div>
         </div>
-        <div class="playback-controls">
-            <div class="control-btn" id="autoplay-btn" title="Автовоспроизведение"><i class="fas fa-play-circle"></i></div>
-            <div class="control-btn" id="repeat-btn" title="Режим повтора"><i class="fas fa-repeat"></i></div>
-        </div>
-    </div>
 
-    <!-- Основная панель треков -->
-    <div class="playlist-panel">
-        <div class="playlist-content" id="playlist-content">
-            <div id="playlist"></div>
-            <div id="empty-message" class="empty-message">🎵 Плейлист пуст</div>
+        <div id="peach" class="peach" role="button" aria-label="Тужься, тапай!">🍑</div>
+
+        <div class="stats-grid">
+            <div class="stats-row">
+                <div class="stat-item"><span class="stat-label">💪 ПОТУЖНОСТЬ ТУГА</span><div class="stat-number" id="clickPowerStat">1</div></div>
+                <div class="stat-item"><span class="stat-label">⚙️ АВТО-ПУКИ/СЕК</span><div class="stat-number" id="autoStat">0</div></div>
+                <div class="stat-item"><span class="stat-label">💥 ГРОМКИЙ ПУЧ</span><div class="stat-number" id="critStat">❌</div></div>
+                <div class="stat-item"><span class="stat-label">🌀 ДВОЙНАЯ ПОТУЖН.</span><div class="stat-number" id="doubleStat">❌</div></div>
+            </div>
+            <div class="extra-stats" id="extraStats">
+                <!-- динамические бонусы -->
+            </div>
         </div>
+
+        <button class="shop-btn" id="openShopBtn">🛒 КАКА-МАГАЗИН 🛍️</button>
+        <footer>🍑 Тапай = тужишься ➕ зарабатывай пуки</footer>
     </div>
 </div>
 
-<audio id="global-audio" style="display: none;"></audio>
+<div id="toastContainer"></div>
+
+<!-- Модалка магазина -->
+<div id="shopModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>💩 Магазин улучшений</h2>
+            <button class="close-modal" id="closeShopBtn">&times;</button>
+        </div>
+        <div class="upgrades-grid" id="upgradesList"></div>
+        <div style="margin-top: 14px; text-align: center; font-size: 0.7rem;">✨ Тужься мощнее, пукай громче ✨</div>
+    </div>
+</div>
 
 <script>
-    (function(){
-        "use strict";
-
-        // ---------- SERVICE WORKER ----------
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(console.error);
-            });
-        }
-
-        // ---------- БАЗА ДАННЫХ (только треки) ----------
-        const DB_NAME = 'PupokFMDB';
-        const DB_VERSION = 4; // увеличиваем версию, удаляем старые хранилища плейлистов
-        let db = null;
-
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => { db = request.result; resolve(db); };
-                request.onupgradeneeded = (evt) => {
-                    const db = evt.target.result;
-                    // Удаляем устаревшие хранилища, если они есть
-                    if (db.objectStoreNames.contains('playlists')) {
-                        db.deleteObjectStore('playlists');
-                    }
-                    if (db.objectStoreNames.contains('playlistTracks')) {
-                        db.deleteObjectStore('playlistTracks');
-                    }
-                    // Создаём хранилище треков, если его нет
-                    if (!db.objectStoreNames.contains('tracks')) {
-                        db.createObjectStore('tracks', { keyPath: 'id' });
-                    }
-                };
-            });
-        }
-
-        // ---------- ТЕМА ----------
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = themeToggle.querySelector('i');
-        let currentTheme = localStorage.getItem('pupokTheme') || 'system';
-        function applyTheme() {
-            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            let isDark = currentTheme === 'dark' || (currentTheme === 'system' && systemDark);
-            document.body.classList.toggle('dark', isDark);
-            themeIcon.className = currentTheme === 'light' ? 'fas fa-sun' : (currentTheme === 'dark' ? 'fas fa-moon' : 'fas fa-circle-half-stroke');
-            document.getElementById('theme-color-meta').setAttribute('content', isDark ? '#1e1528' : '#b8a9d2');
-        }
-        themeToggle.addEventListener('click', () => {
-            if (currentTheme === 'light') currentTheme = 'dark';
-            else if (currentTheme === 'dark') currentTheme = 'system';
-            else currentTheme = 'light';
-            localStorage.setItem('pupokTheme', currentTheme);
-            applyTheme();
+    // ----- ИГРОВЫЕ ПАРАМЕТРЫ (новые фишки) -----
+    let score = 0;                 // каки/пуки
+    let clickLevel = 0;           // базовые уровни туга (+1 за уровень)
+    let autoCount = 0;            // автопуки
+    let doublerPurchased = false; // удвоитель потужности
+    let critPurchased = false;    // крит 15%
+    let cosmeticPurchased = false;// блестящий персик
+    
+    // НОВЫЕ УЛУЧШЕНИЯ:
+    let heavyPush = false;        // +2 к базовой силе (тяжёлый пуш)
+    let luckyPants = false;       // +10% шанс крита (счастливые штаны)
+    let meteorism = false;        // каждые 10 сек бонус = авто-пуки
+    
+    // Цены
+    const DOUBLER_COST = 220;
+    const CRIT_COST = 100;
+    const COSMETIC_COST = 30;
+    const HEAVY_COST = 150;
+    const LUCKY_COST = 130;
+    const METEORISM_COST = 190;
+    
+    // DOM элементы
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const peachDiv = document.getElementById('peach');
+    const clickPowerStat = document.getElementById('clickPowerStat');
+    const autoStat = document.getElementById('autoStat');
+    const critStatSpan = document.getElementById('critStat');
+    const doubleStatSpan = document.getElementById('doubleStat');
+    const extraStatsDiv = document.getElementById('extraStats');
+    const openShopBtn = document.getElementById('openShopBtn');
+    const shopModal = document.getElementById('shopModal');
+    const closeShopBtn = document.getElementById('closeShopBtn');
+    const upgradesContainer = document.getElementById('upgradesList');
+    
+    // Вспомогательные функции (тосты, уведомления)
+    function showToast(message, bgColor = '#ffb347') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = message;
+        toast.style.backgroundColor = bgColor;
+        toast.style.color = '#1e1a12';
+        container.appendChild(toast);
+        setTimeout(() => { if(toast.parentNode) toast.remove(); }, 1200);
+    }
+    
+    // Эффект у персика (+число)
+    function showClickEffect(x, y, amount, isCrit = false) {
+        const el = document.createElement('div');
+        el.innerText = isCrit ? `💥 ПУЧ! +${amount}` : `➕ +${amount}`;
+        el.style.position = 'fixed';
+        el.style.left = `${x}px`;
+        el.style.top = `${y - 30}px`;
+        el.style.fontSize = '1.8rem';
+        el.style.fontWeight = 'bold';
+        el.style.color = isCrit ? '#ffd966' : '#ffbb55';
+        el.style.textShadow = '0 0 6px black';
+        el.style.zIndex = '1050';
+        el.style.pointerEvents = 'none';
+        el.style.transition = 'all 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1)';
+        el.style.opacity = '1';
+        document.body.appendChild(el);
+        requestAnimationFrame(() => {
+            el.style.transform = 'translateY(-55px)';
+            el.style.opacity = '0';
         });
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-
-        // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
-        const audio = document.getElementById('global-audio');
-        const playlistEl = document.getElementById('playlist');
-        const emptyMsg = document.getElementById('empty-message');
-        const fileInput = document.getElementById('file-input');
-        const searchInput = document.getElementById('search-input');
-        const autoplayBtn = document.getElementById('autoplay-btn');
-        const repeatBtn = document.getElementById('repeat-btn');
-
-        let autoplayEnabled = localStorage.getItem('autoplay') === 'true';
-        let repeatMode = parseInt(localStorage.getItem('repeatMode') || '0');
-        const tracksMap = new Map(); // id -> { element, name, blob, objectURL, duration, slider, playBtn }
-        let activeTrackId = null;
-
-        // ---------- ФУНКЦИЯ ОБНОВЛЕНИЯ ПОДСКАЗКИ ПОИСКА ----------
-        function updateSearchPlaceholder() {
-            const total = tracksMap.size;
-            searchInput.placeholder = `Поиск (${total})`;
-        }
-
-        // ---------- ФУНКЦИИ ПЛЕЕРА (основные) ----------
-        function updateEmptyMessage() { 
-            const hasTracks = playlistEl.children.length > 0;
-            emptyMsg.style.display = hasTracks ? 'none' : 'block';
-            updateSearchPlaceholder();
-        }
+        setTimeout(() => el.remove(), 500);
+    }
+    
+    // ----- ЛОГИКА РАСЧЁТА ПОТУЖНОСТИ И КРИТА -----
+    function getBaseClickValue() {
+        let base = 1 + clickLevel;
+        if (heavyPush) base += 2;   // тяжёлый пуш (+2)
+        if (doublerPurchased) base *= 2;
+        return Math.floor(base);
+    }
+    
+    function getFinalClickValueWithCrit() {
+        let baseVal = getBaseClickValue();
+        let critChance = critPurchased ? 0.15 : 0;
+        if (luckyPants) critChance += 0.10;   // счастливые штаны +10%
+        const isCrit = (Math.random() < critChance);
+        let final = isCrit ? baseVal * 3 : baseVal;
+        return { value: final, isCrit };
+    }
+    
+    // Сохранение / загрузка
+    function saveGame() {
+        const saveData = {
+            score, clickLevel, autoCount, doublerPurchased, critPurchased, cosmeticPurchased,
+            heavyPush, luckyPants, meteorism
+        };
+        localStorage.setItem('ClickAssSave', JSON.stringify(saveData));
+    }
+    
+    function loadGame() {
+        const raw = localStorage.getItem('ClickAssSave');
+        if (!raw) return;
+        try {
+            const data = JSON.parse(raw);
+            score = data.score ?? 0;
+            clickLevel = data.clickLevel ?? 0;
+            autoCount = data.autoCount ?? 0;
+            doublerPurchased = data.doublerPurchased ?? false;
+            critPurchased = data.critPurchased ?? false;
+            cosmeticPurchased = data.cosmeticPurchased ?? false;
+            heavyPush = data.heavyPush ?? false;
+            luckyPants = data.luckyPants ?? false;
+            meteorism = data.meteorism ?? false;
+            if (cosmeticPurchased) applyCosmeticEffect();
+            if (meteorism) startMeteorismInterval();
+        } catch(e) { console.warn(e); }
+    }
+    
+    // блеск
+    function applyCosmeticEffect() {
+        peachDiv.style.filter = "drop-shadow(0 0 14px gold) brightness(1.07)";
+    }
+    
+    // метеоризм (бонус каждые 10 сек)
+    let meteorInterval = null;
+    function startMeteorismInterval() {
+        if (meteorInterval) clearInterval(meteorInterval);
+        if (!meteorism) return;
+        meteorInterval = setInterval(() => {
+            if (meteorism && autoCount > 0) {
+                const bonus = autoCount;
+                score += bonus;
+                updateUI();
+                showToast(`💨 Метеоризм! +${bonus} пуков от пердежа!`, '#e6a157');
+            } else if (meteorism && autoCount === 0) {
+                // ничего не даёт, но молчим
+            }
+        }, 10000);
+    }
+    
+    // Обновить интерфейс полностью
+    function updateUI() {
+        scoreDisplay.innerText = Math.floor(score);
+        clickPowerStat.innerText = getBaseClickValue();
+        autoStat.innerText = autoCount;
+        critStatSpan.innerText = critPurchased || luckyPants ? (critPurchased ? (luckyPants ? '25%' : '15%') : (luckyPants ? '10%' : '❌')) : '❌';
+        doubleStatSpan.innerText = doublerPurchased ? '✔️ x2' : '❌';
         
-        function updatePlayButton(id, isPlaying) {
-            const t = tracksMap.get(id); if(!t) return;
-            t.playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-            t.playBtn.classList.toggle('playing', isPlaying);
-        }
+        // отображение дополнительных фишек
+        let extraHtml = '';
+        if (heavyPush) extraHtml += `<span class="extra-badge">💪 Тяжёлый пуш (+2)</span>`;
+        if (luckyPants) extraHtml += `<span class="extra-badge">🍀 Счастл. штаны (+10% крит)</span>`;
+        if (meteorism) extraHtml += `<span class="extra-badge">💨 Метеоризм (бонус/10с)</span>`;
+        if (!heavyPush && !luckyPants && !meteorism) extraHtml = `<span class="extra-badge">✨ Купи фишки в магазине ✨</span>`;
+        extraStatsDiv.innerHTML = extraHtml;
         
-        function updateSliderFill(slider, value, max) {
-            if (!slider) return;
-            const percent = max > 0 ? (value / max) * 100 : 0;
-            slider.style.setProperty('--fill-percent', percent + '%');
+        updateShopPanel();
+        saveGame();
+    }
+    
+    // Обновить магазин (кнопки с ценами)
+    function updateShopPanel() {
+        if (!upgradesContainer) return;
+        const clickCost = 10 + clickLevel * 5;
+        const autoCost = 40 + autoCount * 15;
+        const canAffordClick = score >= clickCost;
+        const canAffordAuto = score >= autoCost;
+        const canAffordDoubler = (!doublerPurchased && score >= DOUBLER_COST);
+        const canAffordCrit = (!critPurchased && score >= CRIT_COST);
+        const canAffordCosmetic = (!cosmeticPurchased && score >= COSMETIC_COST);
+        const canAffordHeavy = (!heavyPush && score >= HEAVY_COST);
+        const canAffordLucky = (!luckyPants && score >= LUCKY_COST);
+        const canAffordMeteor = (!meteorism && score >= METEORISM_COST);
+        
+        upgradesContainer.innerHTML = `
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💪 ТУЖИТЬСЯ СИЛЬНЕЕ +1</div><div class="upgrade-desc">Увеличивает потужность туга на 1 (уровень ${clickLevel})</div><div class="upgrade-cost">💰 ${clickCost} 💩</div></div><button class="upgrade-btn" id="buyClickUpgradeBtn" ${!canAffordClick ? 'disabled' : ''}>Купить</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">⚙️ АВТОМАТИЧЕСКИЙ ПУК</div><div class="upgrade-desc">1 пук/сек (всего: ${autoCount})</div><div class="upgrade-cost">💰 ${autoCost} 💩</div></div><button class="upgrade-btn" id="buyAutoUpgradeBtn" ${!canAffordAuto ? 'disabled' : ''}>Купить</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">🌀 ДВОЙНАЯ ПОТУЖНОСТЬ</div><div class="upgrade-desc">Навсегда удваивает силу нажатия</div><div class="upgrade-cost">💰 ${DOUBLER_COST} 💩</div></div><button class="upgrade-btn" id="buyDoublerBtn" ${doublerPurchased ? 'disabled' : ''} ${!canAffordDoubler && !doublerPurchased ? 'disabled' : ''}>${doublerPurchased ? 'Куплено ✅' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💥 ГРОМКИЙ ПУЧ (КРИТ)</div><div class="upgrade-desc">15% шанс x3 урон</div><div class="upgrade-cost">💰 ${CRIT_COST} 💩</div></div><button class="upgrade-btn" id="buyCritBtn" ${critPurchased ? 'disabled' : ''} ${!canAffordCrit && !critPurchased ? 'disabled' : ''}>${critPurchased ? 'Активен ⚡' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">✨ БЛЕСТЯЩИЙ ПЕРСИК</div><div class="upgrade-desc">Красивый визуал + блеск</div><div class="upgrade-cost">💰 ${COSMETIC_COST} 💩</div></div><button class="upgrade-btn" id="buyCosmeticBtn" ${cosmeticPurchased ? 'disabled' : ''} ${!canAffordCosmetic && !cosmeticPurchased ? 'disabled' : ''}>${cosmeticPurchased ? 'Сияет 🌟' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💪 ТЯЖЁЛЫЙ ПУШ</div><div class="upgrade-desc">+2 к базовой потужности (постоянно)</div><div class="upgrade-cost">💰 ${HEAVY_COST} 💩</div></div><button class="upgrade-btn" id="buyHeavyBtn" ${heavyPush ? 'disabled' : ''} ${!canAffordHeavy && !heavyPush ? 'disabled' : ''}>${heavyPush ? 'Включён 💪' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">🍀 СЧАСТЛИВЫЕ ШТАНЫ</div><div class="upgrade-desc">+10% шанс Громкого пуча</div><div class="upgrade-cost">💰 ${LUCKY_COST} 💩</div></div><button class="upgrade-btn" id="buyLuckyBtn" ${luckyPants ? 'disabled' : ''} ${!canAffordLucky && !luckyPants ? 'disabled' : ''}>${luckyPants ? 'Ношу 🍀' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💨 МЕТЕОРИЗМ (фишка)</div><div class="upgrade-desc">Каждые 10 сек даёт бонус = кол-ву авто-пуков</div><div class="upgrade-cost">💰 ${METEORISM_COST} 💩</div></div><button class="upgrade-btn" id="buyMeteorBtn" ${meteorism ? 'disabled' : ''} ${!canAffordMeteor && !meteorism ? 'disabled' : ''}>${meteorism ? 'Газы активны 💨' : 'Купить'}</button></div>
+        `;
+        
+        document.getElementById('buyClickUpgradeBtn')?.addEventListener('click', () => buyClickUpgrade());
+        document.getElementById('buyAutoUpgradeBtn')?.addEventListener('click', () => buyAutoClicker());
+        document.getElementById('buyDoublerBtn')?.addEventListener('click', () => buyDoubler());
+        document.getElementById('buyCritBtn')?.addEventListener('click', () => buyCrit());
+        document.getElementById('buyCosmeticBtn')?.addEventListener('click', () => buyCosmetic());
+        document.getElementById('buyHeavyBtn')?.addEventListener('click', () => buyHeavyPush());
+        document.getElementById('buyLuckyBtn')?.addEventListener('click', () => buyLuckyPants());
+        document.getElementById('buyMeteorBtn')?.addEventListener('click', () => buyMeteorism());
+    }
+    
+    // Покупки (новые)
+    function buyClickUpgrade() { let cost = 10 + clickLevel * 5; if (score >= cost) { score -= cost; clickLevel++; updateUI(); showToast(`Тужишься мощнее! +1 потужность 💪`, '#f4a261'); } else showToast(`Не хватает пуков!`, '#e67e22'); }
+    function buyAutoClicker() { let cost = 40 + autoCount * 15; if (score >= cost) { score -= cost; autoCount++; updateUI(); showToast(`Авто-пук добавлен! +1/сек`, '#76c893'); } else showToast(`Мало какашек!`, '#e67e22'); }
+    function buyDoubler() { if (doublerPurchased) return; if (score >= DOUBLER_COST) { score -= DOUBLER_COST; doublerPurchased = true; updateUI(); showToast(`ДВОЙНАЯ ПОТУЖНОСТЬ! 🌀`, '#f4d03f'); } else showToast(`Нужно ${DOUBLER_COST} пуков!`); }
+    function buyCrit() { if (critPurchased) return; if (score >= CRIT_COST) { score -= CRIT_COST; critPurchased = true; updateUI(); showToast(`Громкий пуч разблокирован! ⚡ 15%`, '#e9c46a'); } else showToast(`Недостаточно какашек!`); }
+    function buyCosmetic() { if (cosmeticPurchased) return; if (score >= COSMETIC_COST) { score -= COSMETIC_COST; cosmeticPurchased = true; applyCosmeticEffect(); updateUI(); showToast(`Персик засиял ✨`, '#ffb347'); } else showToast(`Нужно ${COSMETIC_COST} 💩`); }
+    function buyHeavyPush() { if (heavyPush) return; if (score >= HEAVY_COST) { score -= HEAVY_COST; heavyPush = true; updateUI(); showToast(`Тяжёлый пуш активирован! +2 к силе`, '#d99e36'); } else showToast(`Не хватает пуков!`); }
+    function buyLuckyPants() { if (luckyPants) return; if (score >= LUCKY_COST) { score -= LUCKY_COST; luckyPants = true; updateUI(); showToast(`Счастливые штаны надеты! +10% к криту 🍀`, '#b88b4a'); } else showToast(`Недостаточно 💩`); }
+    function buyMeteorism() { if (meteorism) return; if (score >= METEORISM_COST) { score -= METEORISM_COST; meteorism = true; startMeteorismInterval(); updateUI(); showToast(`Метеоризм! Газы будут приносить пуки каждые 10 сек 💨`, '#cd8d4b'); } else showToast(`Не хватает какашек!`); }
+    
+    // Клик по персику
+    function onPeachClick(event) {
+        const { value: gain, isCrit } = getFinalClickValueWithCrit();
+        if (gain <= 0) return;
+        score += gain;
+        updateUI();
+        peachDiv.style.transform = 'scale(0.92)';
+        setTimeout(() => { peachDiv.style.transform = ''; }, 100);
+        if (cosmeticPurchased) {
+            peachDiv.classList.add('peach-glitter');
+            setTimeout(() => peachDiv.classList.remove('peach-glitter'), 280);
         }
-
-        audio.addEventListener('timeupdate', () => {
-            if (!activeTrackId) return;
-            const track = tracksMap.get(activeTrackId);
-            if (!track) return;
-            const current = audio.currentTime;
-            const duration = audio.duration || track.duration;
-            track.slider.value = current;
-            updateSliderFill(track.slider, current, duration);
-            if (!isNaN(duration) && duration > 0) track.slider.max = Math.floor(duration);
-        });
-
-        audio.addEventListener('ended', () => {
-            if (!activeTrackId) return;
-            if (repeatMode === 2) { audio.currentTime = 0; audio.play().catch(()=>{}); return; }
-            const track = tracksMap.get(activeTrackId);
-            track.slider.value = 0;
-            updateSliderFill(track.slider, 0, track.slider.max);
-            updatePlayButton(activeTrackId, false);
-            if (autoplayEnabled) {
-                const nextId = getNextVisibleTrack(activeTrackId);
-                if (nextId) activateTrack(nextId, true);
+        const rect = peachDiv.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        showClickEffect(x, y, gain, isCrit);
+        if (isCrit) showToast(`🍑 ГРОМКИЙ ПУЧ! x3 🍑`, '#f39c12');
+    }
+    
+    // Автодобыча (секундный тикер)
+    let passiveInterval = null;
+    function startPassiveIncome() {
+        if (passiveInterval) clearInterval(passiveInterval);
+        passiveInterval = setInterval(() => {
+            if (autoCount > 0) {
+                score += autoCount;
+                updateUI();
+                if (Math.random() < 0.15) showToast(`💨 +${autoCount} авто-пуков`, '#b8895a');
             }
-        });
-
-        function getNextVisibleTrack(currentId) {
-            const items = Array.from(playlistEl.children).filter(el => el.style.display !== 'none');
-            const idx = items.findIndex(el => el.dataset.id === currentId);
-            if (idx === -1) return null;
-            let next = idx + 1;
-            if (next >= items.length) next = repeatMode === 1 ? 0 : -1;
-            return next >= 0 ? items[next]?.dataset.id : null;
-        }
-
-        function activateTrack(id, autoPlay = true) {
-            const track = tracksMap.get(id);
-            if (!track) return;
-            if (activeTrackId === id) { if (autoPlay && audio.paused) audio.play().catch(()=>{}); return; }
-            if (activeTrackId) {
-                const prev = tracksMap.get(activeTrackId);
-                if (prev) { prev.slider.value = 0; updateSliderFill(prev.slider, 0, prev.slider.max); updatePlayButton(activeTrackId, false); }
-            }
-            audio.src = track.objectURL;
-            audio.load();
-            audio.currentTime = 0;
-            activeTrackId = id;
-            if (track.duration) track.slider.max = Math.floor(track.duration);
-            audio.addEventListener('loadedmetadata', function onMeta() {
-                const dur = audio.duration;
-                if (dur && !isNaN(dur)) { track.duration = dur; track.slider.max = Math.floor(dur); }
-                audio.removeEventListener('loadedmetadata', onMeta);
-            });
-            track.slider.value = 0;
-            updateSliderFill(track.slider, 0, track.slider.max);
-            if (autoPlay) { audio.play().catch(()=>{}); updatePlayButton(id, true); }
-            else updatePlayButton(id, false);
-        }
-
-        function togglePlay(id) {
-            const track = tracksMap.get(id); if(!track) return;
-            if (activeTrackId !== id) activateTrack(id, true);
-            else { if(audio.paused) { audio.play(); updatePlayButton(id, true); } else { audio.pause(); updatePlayButton(id, false); } }
-        }
-
-        async function deleteTrack(id) {
-            const track = tracksMap.get(id); if(!track) return;
-            if (activeTrackId === id) { audio.pause(); audio.src = ''; activeTrackId = null; }
-            await deleteTrackFromDB(id);
-            URL.revokeObjectURL(track.objectURL);
-            track.element.remove();
-            tracksMap.delete(id);
-            updateEmptyMessage();
-            filterTracks();
-        }
-
-        // ---------- РАБОТА С БД (треки) ----------
-        async function addTrackToDB(track) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks','readwrite'); const r = tx.objectStore('tracks').put(track); r.onsuccess=res; r.onerror=rej; }); }
-        async function getAllTracksFromDB() { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks'); const r = tx.objectStore('tracks').getAll(); r.onsuccess=()=>res(r.result); r.onerror=rej; }); }
-        async function deleteTrackFromDB(id) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks','readwrite'); const r = tx.objectStore('tracks').delete(id); r.onsuccess=res; r.onerror=rej; }); }
-
-        // ---------- UI ТРЕКОВ ----------
-        function createTrackElement(track) {
-            const item = document.createElement('div'); item.className = 'track-item'; item.dataset.id = track.id;
-            const row = document.createElement('div'); row.className = 'track-row';
-            const actionLeft = document.createElement('div'); actionLeft.className = 'action-left';
-            const deleteBtn = document.createElement('div'); deleteBtn.className = 'delete-btn'; deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-            deleteBtn.addEventListener('click', (e)=>{ e.stopPropagation(); showDeleteConfirmation(track.id); });
-            actionLeft.appendChild(deleteBtn);
-            const infoDiv = document.createElement('div'); infoDiv.className = 'track-info';
-            const nameDiv = document.createElement('div'); nameDiv.className = 'track-name'; nameDiv.textContent = track.name;
-            const slider = document.createElement('input'); slider.type = 'range'; slider.className = 'progress-slider'; slider.min = 0; slider.max = track.duration||0; slider.value=0; slider.step=0.1;
-            infoDiv.appendChild(nameDiv); infoDiv.appendChild(slider);
-            const playBtn = document.createElement('div'); playBtn.className = 'play-pause-btn'; playBtn.innerHTML = '<i class="fas fa-play"></i>';
-            row.appendChild(actionLeft); row.appendChild(infoDiv); row.appendChild(playBtn);
-            item.appendChild(row);
-            return { item, deleteBtn, playBtn, slider };
-        }
-
-        function addTrackToUI(track) {
-            const { item, playBtn, slider } = createTrackElement(track);
-            playlistEl.appendChild(item);
-            tracksMap.set(track.id, { element: item, name: track.name, blob: track.blob, objectURL: URL.createObjectURL(track.blob), duration: track.duration, slider, playBtn });
-            playBtn.addEventListener('click', ()=> togglePlay(track.id));
-            slider.addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value);
-                updateSliderFill(slider, val, slider.max);
-                if (activeTrackId === track.id) audio.currentTime = val;
-                else { activateTrack(track.id, false); audio.currentTime = val; updatePlayButton(track.id, false); }
-            });
-            updatePlayButton(track.id, false);
-            updateSliderFill(slider, 0, slider.max);
-            updateEmptyMessage();
-            filterTracks();
-        }
-
-        function filterTracks() {
-            const q = searchInput.value.trim().toLowerCase();
-            tracksMap.forEach((t) => t.element.style.display = (!q || t.name.toLowerCase().includes(q)) ? 'block' : 'none');
-        }
-        searchInput.addEventListener('input', filterTracks);
-
-        // Загрузка файлов
-        fileInput.addEventListener('change', async (e) => {
-            for (const file of Array.from(e.target.files)) {
-                if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|flac)$/i)) { alert(`Не аудио: ${file.name}`); continue; }
-                let duration; try { duration = await getAudioDuration(file); } catch { duration = null; }
-                if (!duration) { alert(`Ошибка чтения: ${file.name}`); continue; }
-                const id = crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36);
-                const track = { id, name: file.name, blob: file, duration };
-                await addTrackToDB(track);
-                addTrackToUI(track);
-            }
-            fileInput.value = '';
-        });
-        function getAudioDuration(blob) {
-            return new Promise((resolve) => {
-                const url = URL.createObjectURL(blob); const a = new Audio(url);
-                a.addEventListener('loadedmetadata', ()=>{ resolve(a.duration); URL.revokeObjectURL(url); });
-                a.addEventListener('error', ()=>{ resolve(null); URL.revokeObjectURL(url); });
-            });
-        }
-
-        // Инициализация кнопок плеера
-        autoplayBtn.addEventListener('click', ()=>{ autoplayEnabled=!autoplayEnabled; localStorage.setItem('autoplay', autoplayEnabled); autoplayBtn.classList.toggle('active', autoplayEnabled); });
-        repeatBtn.addEventListener('click', ()=>{ repeatMode=(repeatMode+1)%3; localStorage.setItem('repeatMode', repeatMode); updateRepeatButton(); });
-        function updateRepeatButton() {
-            repeatBtn.classList.remove('active','repeat-one');
-            if(repeatMode===1) repeatBtn.classList.add('active');
-            if(repeatMode===2) repeatBtn.classList.add('active','repeat-one');
-        }
-        updateRepeatButton();
-        autoplayBtn.classList.toggle('active', autoplayEnabled);
-
-        // Загрузка начальных данных
-        (async function init(){
-            await openDB();
-            applyTheme();
-            const tracks = await getAllTracksFromDB();
-            tracks.forEach(t => addTrackToUI(t));
-            updateSearchPlaceholder();
-        })();
-
-        // Вспомогательные функции для удаления трека
-        function showDeleteConfirmation(id) {
-            const track = tracksMap.get(id); if(!track) return;
-            const left = track.element.querySelector('.action-left');
-            left.innerHTML = `<div class="confirm-btn"><i class="fas fa-check"></i></div><div class="cancel-btn"><i class="fas fa-times"></i></div>`;
-            left.querySelector('.confirm-btn').addEventListener('click', (e)=>{ e.stopPropagation(); deleteTrack(id); });
-            left.querySelector('.cancel-btn').addEventListener('click', (e)=>{ e.stopPropagation(); left.innerHTML = `<div class="delete-btn"><i class="fas fa-trash-alt"></i></div>`; left.querySelector('.delete-btn').addEventListener('click', (e2)=>{ e2.stopPropagation(); showDeleteConfirmation(id); }); });
-        }
-
-    })();
+        }, 1000);
+    }
+    
+    // Модалка
+    function openShop() { updateShopPanel(); shopModal.style.display = 'flex'; }
+    function closeShop() { shopModal.style.display = 'none'; }
+    
+    // Инициализация
+    function init() {
+        loadGame();
+        updateUI();
+        startPassiveIncome();
+        if (meteorism) startMeteorismInterval();
+        peachDiv.addEventListener('click', onPeachClick);
+        openShopBtn.addEventListener('click', openShop);
+        closeShopBtn.addEventListener('click', closeShop);
+        window.addEventListener('click', (e) => { if (e.target === shopModal) closeShop(); });
+        window.addEventListener('beforeunload', () => saveGame());
+    }
+    init();
 </script>
 </body>
 </html>
