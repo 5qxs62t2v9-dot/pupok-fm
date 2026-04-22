@@ -2,32 +2,40 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, shrink-to-fit=no">
+    <!-- Отключаем кэширование старых версий -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>ClickAss — Пукатый персик</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            /* Запрет выделения и контекстного меню через CSS */
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* улучшает мультитач, отключает зум */
         }
 
-        /* Базовые настройки — без прокрутки и белых полос */
+        /* Полное отключение скролла страницы */
         html, body {
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden;   /* убираем скролл всей страницы */
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
 
-        /* Адаптивная тема (светлая/тёмная) */
+        /* Адаптивная тема */
         :root {
             --bg-gradient-light: linear-gradient(145deg, #fff2e0 0%, #ffddb0 100%);
-            --card-light: rgba(255, 245, 225, 0.92);
+            --card-light: rgba(255, 245, 225, 0.94);
             --text-light: #3b2a1f;
-            --accent-light: #ff9f4a;
             --peach-shadow-light: 0 20px 30px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(255, 160, 80, 0.4);
             --btn-light: #f39c12;
             --btn-hover-light: #e67e22;
@@ -35,9 +43,8 @@
 
         :root {
             --bg-gradient-dark: linear-gradient(135deg, #1a2a2a 0%, #0e1a1e 100%);
-            --card-dark: rgba(25, 30, 35, 0.92);
+            --card-dark: rgba(25, 30, 35, 0.94);
             --text-dark: #f7eedb;
-            --accent-dark: #e67e22;
             --peach-shadow-dark: 0 20px 30px rgba(0, 0, 0, 0.6), 0 0 0 4px rgba(230, 126, 34, 0.5);
             --btn-dark: #c96f1e;
             --btn-hover-dark: #b55d12;
@@ -97,10 +104,10 @@
             }
         }
 
-        /* основной контейнер — без скролла, по центру */
+        /* Контейнер без прокрутки */
         .container {
             width: 100%;
-            max-width: 580px;
+            max-width: 600px;
             margin: 0 auto;
             padding: 12px;
             display: flex;
@@ -111,15 +118,33 @@
 
         .card {
             border-radius: 70px 70px 60px 60px;
-            padding: 20px 18px 25px;
+            padding: 18px 18px 25px;
             width: 100%;
             text-align: center;
             transition: all 0.2s;
             box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;  /* разрешаем прокрутку внутри карточки, но контент не превышает высоту */
+            max-height: 98vh;
+        }
+        /* Но в карточке контент компактный, скролл не нужен обычно, но если сильно длинный — будет внутри */
+        .card::-webkit-scrollbar {
+            width: 4px;
         }
 
-        .score-area {
-            margin-bottom: 10px;
+        /* Дата сверху */
+        .date-area {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            background: rgba(0,0,0,0.15);
+            display: inline-block;
+            padding: 5px 18px;
+            border-radius: 60px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+        }
+        .date-area span {
+            font-size: 1rem;
         }
 
         .score-title {
@@ -129,7 +154,6 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            letter-spacing: 1px;
         }
 
         .score-value {
@@ -149,6 +173,7 @@
             display: inline-block;
             margin: 5px 0;
             filter: drop-shadow(0 12px 18px rgba(0,0,0,0.25));
+            touch-action: manipulation; /* мультитач работает плавно */
         }
         .peach:active {
             transform: scale(0.92);
@@ -162,11 +187,10 @@
             100% { text-shadow: 0 0 0px gold; filter: brightness(1);}
         }
 
-        /* статы — компактно + новые фишки */
         .stats-grid {
             background: rgba(0, 0, 0, 0.15);
             border-radius: 50px;
-            padding: 12px 12px;
+            padding: 12px;
             margin: 12px 0;
             backdrop-filter: blur(4px);
         }
@@ -174,12 +198,12 @@
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 8px;
         }
         .stat-item {
             flex: 1;
-            min-width: 85px;
+            min-width: 75px;
             background: rgba(0,0,0,0.1);
             border-radius: 50px;
             padding: 6px 5px;
@@ -196,15 +220,16 @@
         .extra-stats {
             display: flex;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
             margin-top: 6px;
-            font-size: 0.7rem;
-            font-weight: bold;
         }
         .extra-badge {
             background: rgba(0,0,0,0.2);
             border-radius: 40px;
             padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
         }
 
         .shop-btn {
@@ -221,17 +246,18 @@
             width: 85%;
         }
 
-        /* Модалка с прокруткой внутри */
+        /* Модалка с прокруткой только внутри */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
+            background-color: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            overflow: hidden;
         }
         .modal-content {
             width: 92%;
@@ -239,9 +265,11 @@
             max-height: 85vh;
             border-radius: 48px;
             padding: 18px 18px 25px;
-            overflow-y: auto;
-            position: relative;
+            overflow-y: auto;   /* ТОЛЬКО внутри модалки можно скроллить */
             animation: fadeSlide 0.2s ease;
+        }
+        .modal-content::-webkit-scrollbar {
+            width: 5px;
         }
         @keyframes fadeSlide {
             from { opacity: 0; transform: translateY(25px);}
@@ -254,9 +282,6 @@
             margin-bottom: 18px;
             padding-bottom: 8px;
             border-bottom: 2px solid #ffa559;
-        }
-        .modal-header h2 {
-            font-size: 1.8rem;
         }
         .close-modal {
             font-size: 2.2rem;
@@ -286,10 +311,10 @@
         }
         .upgrade-name {
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         .upgrade-desc {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             opacity: 0.8;
         }
         .upgrade-cost {
@@ -297,8 +322,7 @@
             background: rgba(0,0,0,0.3);
             border-radius: 30px;
             padding: 4px 12px;
-            display: inline-block;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         .upgrade-btn {
             border: none;
@@ -307,12 +331,10 @@
             border-radius: 60px;
             color: white;
             cursor: pointer;
-            transition: 0.1s;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         .upgrade-btn:disabled {
             opacity: 0.45;
-            transform: none;
             cursor: not-allowed;
         }
         footer {
@@ -321,7 +343,7 @@
             opacity: 0.7;
         }
 
-        /* контейнер для тостов (не перекрывают друг друга) */
+        /* Тосты */
         #toastContainer {
             position: fixed;
             top: 20px;
@@ -333,7 +355,6 @@
             align-items: center;
             gap: 8px;
             pointer-events: none;
-            max-width: 90%;
         }
         .toast {
             background: #ffb347cc;
@@ -342,7 +363,7 @@
             padding: 8px 24px;
             border-radius: 60px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.9rem;
             box-shadow: 0 5px 15px black;
             white-space: nowrap;
             animation: fadeInOut 1.2s forwards;
@@ -355,9 +376,8 @@
         }
         @media (max-width: 500px) {
             .peach { font-size: 130px; }
-            .score-value { font-size: 2.7rem; }
-            .stats-row { flex-direction: row; flex-wrap: wrap; }
-            .stat-item { min-width: 70px; }
+            .score-value { font-size: 2.5rem; }
+            .date-area { font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -365,14 +385,15 @@
 
 <div class="container">
     <div class="card">
-        <div class="score-area">
-            <div class="score-title">
-                <span>🍑 ПУКОВ И КАКОВ 💩</span>
-            </div>
-            <div class="score-value" id="scoreDisplay">0</div>
-        </div>
+        <!-- Дата по-английски с "степенью 67" -->
+        <div class="date-area" id="dateDisplay"></div>
 
-        <div id="peach" class="peach" role="button" aria-label="Тужься, тапай!">🍑</div>
+        <div class="score-title">
+            <span>🍑 ПУКОВ И КАКОВ 💩</span>
+        </div>
+        <div class="score-value" id="scoreDisplay">0</div>
+
+        <div id="peach" class="peach" role="button" aria-label="Тужься, тапай (можно несколькими пальцами)">🍑</div>
 
         <div class="stats-grid">
             <div class="stats-row">
@@ -381,13 +402,11 @@
                 <div class="stat-item"><span class="stat-label">💥 ГРОМКИЙ ПУЧ</span><div class="stat-number" id="critStat">❌</div></div>
                 <div class="stat-item"><span class="stat-label">🌀 ДВОЙНАЯ ПОТУЖН.</span><div class="stat-number" id="doubleStat">❌</div></div>
             </div>
-            <div class="extra-stats" id="extraStats">
-                <!-- динамические бонусы -->
-            </div>
+            <div class="extra-stats" id="extraStats"></div>
         </div>
 
         <button class="shop-btn" id="openShopBtn">🛒 КАКА-МАГАЗИН 🛍️</button>
-        <footer>🍑 Тапай = тужишься ➕ зарабатывай пуки</footer>
+        <footer>🍑 Тапай (несколькими пальцами) = тужишься мощнее</footer>
     </div>
 </div>
 
@@ -406,18 +425,22 @@
 </div>
 
 <script>
-    // ----- ИГРОВЫЕ ПАРАМЕТРЫ (новые фишки) -----
-    let score = 0;                 // каки/пуки
-    let clickLevel = 0;           // базовые уровни туга (+1 за уровень)
-    let autoCount = 0;            // автопуки
-    let doublerPurchased = false; // удвоитель потужности
-    let critPurchased = false;    // крит 15%
-    let cosmeticPurchased = false;// блестящий персик
+    // ---------- ЗАПРЕТ КОНТЕКСТНОГО МЕНЮ И ВЫДЕЛЕНИЯ ----------
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+    document.addEventListener('dragstart', (e) => e.preventDefault());
+    // Запрет зума жестами (уже частично через meta viewport и touch-action)
     
-    // НОВЫЕ УЛУЧШЕНИЯ:
-    let heavyPush = false;        // +2 к базовой силе (тяжёлый пуш)
-    let luckyPants = false;       // +10% шанс крита (счастливые штаны)
-    let meteorism = false;        // каждые 10 сек бонус = авто-пуки
+    // ---------- ИГРОВЫЕ ПЕРЕМЕННЫЕ ----------
+    let score = 0;
+    let clickLevel = 0;           // базовые уровни туга (+1)
+    let autoCount = 0;
+    let doublerPurchased = false;
+    let critPurchased = false;
+    let cosmeticPurchased = false;
+    let heavyPush = false;
+    let luckyPants = false;
+    let meteorism = false;
     
     // Цены
     const DOUBLER_COST = 220;
@@ -440,45 +463,25 @@
     const closeShopBtn = document.getElementById('closeShopBtn');
     const upgradesContainer = document.getElementById('upgradesList');
     
-    // Вспомогательные функции (тосты, уведомления)
-    function showToast(message, bgColor = '#ffb347') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerText = message;
-        toast.style.backgroundColor = bgColor;
-        toast.style.color = '#1e1a12';
-        container.appendChild(toast);
-        setTimeout(() => { if(toast.parentNode) toast.remove(); }, 1200);
+    // ---------- ДАТА СТИЛЬ "The 22^67st of April" ----------
+    function updateDateDisplay() {
+        const now = new Date();
+        const day = now.getDate();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const month = monthNames[now.getMonth()];
+        // всегда используем суффикс "st" как в примере, несмотря на число
+        const suffix = "st";
+        // формируем строку: The {day}<sup>67</sup>{suffix} of {month}
+        const dateStr = `The ${day}<sup>67</sup>${suffix} of ${month}`;
+        document.getElementById('dateDisplay').innerHTML = dateStr;
     }
+    updateDateDisplay();
+    setInterval(updateDateDisplay, 60000); // обновлять раз в минуту (на случай смены дня)
     
-    // Эффект у персика (+число)
-    function showClickEffect(x, y, amount, isCrit = false) {
-        const el = document.createElement('div');
-        el.innerText = isCrit ? `💥 ПУЧ! +${amount}` : `➕ +${amount}`;
-        el.style.position = 'fixed';
-        el.style.left = `${x}px`;
-        el.style.top = `${y - 30}px`;
-        el.style.fontSize = '1.8rem';
-        el.style.fontWeight = 'bold';
-        el.style.color = isCrit ? '#ffd966' : '#ffbb55';
-        el.style.textShadow = '0 0 6px black';
-        el.style.zIndex = '1050';
-        el.style.pointerEvents = 'none';
-        el.style.transition = 'all 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1)';
-        el.style.opacity = '1';
-        document.body.appendChild(el);
-        requestAnimationFrame(() => {
-            el.style.transform = 'translateY(-55px)';
-            el.style.opacity = '0';
-        });
-        setTimeout(() => el.remove(), 500);
-    }
-    
-    // ----- ЛОГИКА РАСЧЁТА ПОТУЖНОСТИ И КРИТА -----
+    // ---------- ЛОГИКА РАСЧЁТА ПОТУЖНОСТИ ----------
     function getBaseClickValue() {
         let base = 1 + clickLevel;
-        if (heavyPush) base += 2;   // тяжёлый пуш (+2)
+        if (heavyPush) base += 2;
         if (doublerPurchased) base *= 2;
         return Math.floor(base);
     }
@@ -486,7 +489,7 @@
     function getFinalClickValueWithCrit() {
         let baseVal = getBaseClickValue();
         let critChance = critPurchased ? 0.15 : 0;
-        if (luckyPants) critChance += 0.10;   // счастливые штаны +10%
+        if (luckyPants) critChance += 0.10;
         const isCrit = (Math.random() < critChance);
         let final = isCrit ? baseVal * 3 : baseVal;
         return { value: final, isCrit };
@@ -494,10 +497,7 @@
     
     // Сохранение / загрузка
     function saveGame() {
-        const saveData = {
-            score, clickLevel, autoCount, doublerPurchased, critPurchased, cosmeticPurchased,
-            heavyPush, luckyPants, meteorism
-        };
+        const saveData = { score, clickLevel, autoCount, doublerPurchased, critPurchased, cosmeticPurchased, heavyPush, luckyPants, meteorism };
         localStorage.setItem('ClickAssSave', JSON.stringify(saveData));
     }
     
@@ -517,15 +517,13 @@
             meteorism = data.meteorism ?? false;
             if (cosmeticPurchased) applyCosmeticEffect();
             if (meteorism) startMeteorismInterval();
-        } catch(e) { console.warn(e); }
+        } catch(e) {}
     }
     
-    // блеск
     function applyCosmeticEffect() {
         peachDiv.style.filter = "drop-shadow(0 0 14px gold) brightness(1.07)";
     }
     
-    // метеоризм (бонус каждые 10 сек)
     let meteorInterval = null;
     function startMeteorismInterval() {
         if (meteorInterval) clearInterval(meteorInterval);
@@ -536,33 +534,114 @@
                 score += bonus;
                 updateUI();
                 showToast(`💨 Метеоризм! +${bonus} пуков от пердежа!`, '#e6a157');
-            } else if (meteorism && autoCount === 0) {
-                // ничего не даёт, но молчим
             }
         }, 10000);
     }
     
-    // Обновить интерфейс полностью
+    // Уведомления (тосты)
+    function showToast(message, bgColor = '#ffb347') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = message;
+        toast.style.backgroundColor = bgColor;
+        toast.style.color = '#1e1a12';
+        container.appendChild(toast);
+        setTimeout(() => { if(toast.parentNode) toast.remove(); }, 1200);
+    }
+    
+    // Всплывающие эффекты у персика
+    function showClickEffect(x, y, amount, isCrit = false) {
+        const el = document.createElement('div');
+        el.innerText = isCrit ? `💥 ПУЧ! +${amount}` : `➕ +${amount}`;
+        el.style.position = 'fixed';
+        el.style.left = `${x}px`;
+        el.style.top = `${y - 30}px`;
+        el.style.fontSize = '1.6rem';
+        el.style.fontWeight = 'bold';
+        el.style.color = isCrit ? '#ffd966' : '#ffbb55';
+        el.style.textShadow = '0 0 6px black';
+        el.style.zIndex = '1050';
+        el.style.pointerEvents = 'none';
+        el.style.transition = 'all 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1)';
+        el.style.opacity = '1';
+        document.body.appendChild(el);
+        requestAnimationFrame(() => {
+            el.style.transform = 'translateY(-55px)';
+            el.style.opacity = '0';
+        });
+        setTimeout(() => el.remove(), 500);
+    }
+    
+    // Обработка клика/тапа (одиночный и многопальцевый)
+    function processTap(touchCount, centerX, centerY) {
+        if (touchCount <= 0) return;
+        // Для каждого "пальца" добавляем отдельный выигрыш (каждый дает полноценное значение клика)
+        for (let i = 0; i < touchCount; i++) {
+            const { value: gain, isCrit } = getFinalClickValueWithCrit();
+            if (gain <= 0) continue;
+            score += gain;
+            // Показываем эффект для каждого пальца (немного смещаем, чтобы не сливались)
+            const offsetX = (i % 3 - 1) * 15;
+            const offsetY = Math.floor(i / 3) * 20 - 10;
+            showClickEffect(centerX + offsetX, centerY + offsetY, gain, isCrit);
+            if (isCrit && i === 0) showToast(`🍑 ГРОМКИЙ ПУЧ! x3 🍑`, '#f39c12');
+        }
+        updateUI();
+        // Анимация персика (сжатие)
+        peachDiv.style.transform = 'scale(0.92)';
+        setTimeout(() => { peachDiv.style.transform = ''; }, 100);
+        if (cosmeticPurchased) {
+            peachDiv.classList.add('peach-glitter');
+            setTimeout(() => peachDiv.classList.remove('peach-glitter'), 280);
+        }
+    }
+    
+    // Обработчик мультитач
+    function onPeachTouchStart(e) {
+        e.preventDefault();   // предотвращаем зум и скролл
+        const touches = e.touches;
+        const count = touches.length;
+        if (count === 0) return;
+        // Находим центр касаний для визуального эффекта
+        let sumX = 0, sumY = 0;
+        for (let i = 0; i < count; i++) {
+            sumX += touches[i].clientX;
+            sumY += touches[i].clientY;
+        }
+        const centerX = sumX / count;
+        const centerY = sumY / count;
+        processTap(count, centerX, centerY);
+    }
+    
+    // Для мыши (одиночный)
+    function onPeachMouseClick(e) {
+        const rect = peachDiv.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        processTap(1, centerX, centerY);
+    }
+    
+    // ---------- ФУНКЦИИ ОБНОВЛЕНИЯ UI ----------
     function updateUI() {
         scoreDisplay.innerText = Math.floor(score);
         clickPowerStat.innerText = getBaseClickValue();
         autoStat.innerText = autoCount;
-        critStatSpan.innerText = critPurchased || luckyPants ? (critPurchased ? (luckyPants ? '25%' : '15%') : (luckyPants ? '10%' : '❌')) : '❌';
+        const critText = critPurchased || luckyPants ? (critPurchased ? (luckyPants ? '25%' : '15%') : (luckyPants ? '10%' : '❌')) : '❌';
+        critStatSpan.innerText = critText;
         doubleStatSpan.innerText = doublerPurchased ? '✔️ x2' : '❌';
         
-        // отображение дополнительных фишек
         let extraHtml = '';
         if (heavyPush) extraHtml += `<span class="extra-badge">💪 Тяжёлый пуш (+2)</span>`;
         if (luckyPants) extraHtml += `<span class="extra-badge">🍀 Счастл. штаны (+10% крит)</span>`;
         if (meteorism) extraHtml += `<span class="extra-badge">💨 Метеоризм (бонус/10с)</span>`;
         if (!heavyPush && !luckyPants && !meteorism) extraHtml = `<span class="extra-badge">✨ Купи фишки в магазине ✨</span>`;
         extraStatsDiv.innerHTML = extraHtml;
-        
         updateShopPanel();
         saveGame();
     }
     
-    // Обновить магазин (кнопки с ценами)
+    // Магазин
     function updateShopPanel() {
         if (!upgradesContainer) return;
         const clickCost = 10 + clickLevel * 5;
@@ -577,16 +656,15 @@
         const canAffordMeteor = (!meteorism && score >= METEORISM_COST);
         
         upgradesContainer.innerHTML = `
-            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💪 ТУЖИТЬСЯ СИЛЬНЕЕ +1</div><div class="upgrade-desc">Увеличивает потужность туга на 1 (уровень ${clickLevel})</div><div class="upgrade-cost">💰 ${clickCost} 💩</div></div><button class="upgrade-btn" id="buyClickUpgradeBtn" ${!canAffordClick ? 'disabled' : ''}>Купить</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💪 ТУЖИТЬСЯ СИЛЬНЕЕ +1</div><div class="upgrade-desc">+1 к потужности (ур. ${clickLevel})</div><div class="upgrade-cost">💰 ${clickCost} 💩</div></div><button class="upgrade-btn" id="buyClickUpgradeBtn" ${!canAffordClick ? 'disabled' : ''}>Купить</button></div>
             <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">⚙️ АВТОМАТИЧЕСКИЙ ПУК</div><div class="upgrade-desc">1 пук/сек (всего: ${autoCount})</div><div class="upgrade-cost">💰 ${autoCost} 💩</div></div><button class="upgrade-btn" id="buyAutoUpgradeBtn" ${!canAffordAuto ? 'disabled' : ''}>Купить</button></div>
-            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">🌀 ДВОЙНАЯ ПОТУЖНОСТЬ</div><div class="upgrade-desc">Навсегда удваивает силу нажатия</div><div class="upgrade-cost">💰 ${DOUBLER_COST} 💩</div></div><button class="upgrade-btn" id="buyDoublerBtn" ${doublerPurchased ? 'disabled' : ''} ${!canAffordDoubler && !doublerPurchased ? 'disabled' : ''}>${doublerPurchased ? 'Куплено ✅' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">🌀 ДВОЙНАЯ ПОТУЖНОСТЬ</div><div class="upgrade-desc">Удваивает силу нажатия</div><div class="upgrade-cost">💰 ${DOUBLER_COST} 💩</div></div><button class="upgrade-btn" id="buyDoublerBtn" ${doublerPurchased ? 'disabled' : ''} ${!canAffordDoubler && !doublerPurchased ? 'disabled' : ''}>${doublerPurchased ? 'Куплено ✅' : 'Купить'}</button></div>
             <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💥 ГРОМКИЙ ПУЧ (КРИТ)</div><div class="upgrade-desc">15% шанс x3 урон</div><div class="upgrade-cost">💰 ${CRIT_COST} 💩</div></div><button class="upgrade-btn" id="buyCritBtn" ${critPurchased ? 'disabled' : ''} ${!canAffordCrit && !critPurchased ? 'disabled' : ''}>${critPurchased ? 'Активен ⚡' : 'Купить'}</button></div>
-            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">✨ БЛЕСТЯЩИЙ ПЕРСИК</div><div class="upgrade-desc">Красивый визуал + блеск</div><div class="upgrade-cost">💰 ${COSMETIC_COST} 💩</div></div><button class="upgrade-btn" id="buyCosmeticBtn" ${cosmeticPurchased ? 'disabled' : ''} ${!canAffordCosmetic && !cosmeticPurchased ? 'disabled' : ''}>${cosmeticPurchased ? 'Сияет 🌟' : 'Купить'}</button></div>
-            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💪 ТЯЖЁЛЫЙ ПУШ</div><div class="upgrade-desc">+2 к базовой потужности (постоянно)</div><div class="upgrade-cost">💰 ${HEAVY_COST} 💩</div></div><button class="upgrade-btn" id="buyHeavyBtn" ${heavyPush ? 'disabled' : ''} ${!canAffordHeavy && !heavyPush ? 'disabled' : ''}>${heavyPush ? 'Включён 💪' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">✨ БЛЕСТЯЩИЙ ПЕРСИК</div><div class="upgrade-desc">Красивый визуал</div><div class="upgrade-cost">💰 ${COSMETIC_COST} 💩</div></div><button class="upgrade-btn" id="buyCosmeticBtn" ${cosmeticPurchased ? 'disabled' : ''} ${!canAffordCosmetic && !cosmeticPurchased ? 'disabled' : ''}>${cosmeticPurchased ? 'Сияет 🌟' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💪 ТЯЖЁЛЫЙ ПУШ</div><div class="upgrade-desc">+2 к базовой потужности</div><div class="upgrade-cost">💰 ${HEAVY_COST} 💩</div></div><button class="upgrade-btn" id="buyHeavyBtn" ${heavyPush ? 'disabled' : ''} ${!canAffordHeavy && !heavyPush ? 'disabled' : ''}>${heavyPush ? 'Включён 💪' : 'Купить'}</button></div>
             <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">🍀 СЧАСТЛИВЫЕ ШТАНЫ</div><div class="upgrade-desc">+10% шанс Громкого пуча</div><div class="upgrade-cost">💰 ${LUCKY_COST} 💩</div></div><button class="upgrade-btn" id="buyLuckyBtn" ${luckyPants ? 'disabled' : ''} ${!canAffordLucky && !luckyPants ? 'disabled' : ''}>${luckyPants ? 'Ношу 🍀' : 'Купить'}</button></div>
-            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💨 МЕТЕОРИЗМ (фишка)</div><div class="upgrade-desc">Каждые 10 сек даёт бонус = кол-ву авто-пуков</div><div class="upgrade-cost">💰 ${METEORISM_COST} 💩</div></div><button class="upgrade-btn" id="buyMeteorBtn" ${meteorism ? 'disabled' : ''} ${!canAffordMeteor && !meteorism ? 'disabled' : ''}>${meteorism ? 'Газы активны 💨' : 'Купить'}</button></div>
+            <div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-name">💨 МЕТЕОРИЗМ</div><div class="upgrade-desc">Каждые 10 сек бонус = авто-пуки</div><div class="upgrade-cost">💰 ${METEORISM_COST} 💩</div></div><button class="upgrade-btn" id="buyMeteorBtn" ${meteorism ? 'disabled' : ''} ${!canAffordMeteor && !meteorism ? 'disabled' : ''}>${meteorism ? 'Газы активны 💨' : 'Купить'}</button></div>
         `;
-        
         document.getElementById('buyClickUpgradeBtn')?.addEventListener('click', () => buyClickUpgrade());
         document.getElementById('buyAutoUpgradeBtn')?.addEventListener('click', () => buyAutoClicker());
         document.getElementById('buyDoublerBtn')?.addEventListener('click', () => buyDoubler());
@@ -597,36 +675,17 @@
         document.getElementById('buyMeteorBtn')?.addEventListener('click', () => buyMeteorism());
     }
     
-    // Покупки (новые)
-    function buyClickUpgrade() { let cost = 10 + clickLevel * 5; if (score >= cost) { score -= cost; clickLevel++; updateUI(); showToast(`Тужишься мощнее! +1 потужность 💪`, '#f4a261'); } else showToast(`Не хватает пуков!`, '#e67e22'); }
-    function buyAutoClicker() { let cost = 40 + autoCount * 15; if (score >= cost) { score -= cost; autoCount++; updateUI(); showToast(`Авто-пук добавлен! +1/сек`, '#76c893'); } else showToast(`Мало какашек!`, '#e67e22'); }
-    function buyDoubler() { if (doublerPurchased) return; if (score >= DOUBLER_COST) { score -= DOUBLER_COST; doublerPurchased = true; updateUI(); showToast(`ДВОЙНАЯ ПОТУЖНОСТЬ! 🌀`, '#f4d03f'); } else showToast(`Нужно ${DOUBLER_COST} пуков!`); }
-    function buyCrit() { if (critPurchased) return; if (score >= CRIT_COST) { score -= CRIT_COST; critPurchased = true; updateUI(); showToast(`Громкий пуч разблокирован! ⚡ 15%`, '#e9c46a'); } else showToast(`Недостаточно какашек!`); }
-    function buyCosmetic() { if (cosmeticPurchased) return; if (score >= COSMETIC_COST) { score -= COSMETIC_COST; cosmeticPurchased = true; applyCosmeticEffect(); updateUI(); showToast(`Персик засиял ✨`, '#ffb347'); } else showToast(`Нужно ${COSMETIC_COST} 💩`); }
-    function buyHeavyPush() { if (heavyPush) return; if (score >= HEAVY_COST) { score -= HEAVY_COST; heavyPush = true; updateUI(); showToast(`Тяжёлый пуш активирован! +2 к силе`, '#d99e36'); } else showToast(`Не хватает пуков!`); }
-    function buyLuckyPants() { if (luckyPants) return; if (score >= LUCKY_COST) { score -= LUCKY_COST; luckyPants = true; updateUI(); showToast(`Счастливые штаны надеты! +10% к криту 🍀`, '#b88b4a'); } else showToast(`Недостаточно 💩`); }
-    function buyMeteorism() { if (meteorism) return; if (score >= METEORISM_COST) { score -= METEORISM_COST; meteorism = true; startMeteorismInterval(); updateUI(); showToast(`Метеоризм! Газы будут приносить пуки каждые 10 сек 💨`, '#cd8d4b'); } else showToast(`Не хватает какашек!`); }
+    // Покупки
+    function buyClickUpgrade() { let cost = 10 + clickLevel * 5; if (score >= cost) { score -= cost; clickLevel++; updateUI(); showToast(`Тужишься мощнее! +1 потужность 💪`); } else showToast(`Не хватает пуков!`); }
+    function buyAutoClicker() { let cost = 40 + autoCount * 15; if (score >= cost) { score -= cost; autoCount++; updateUI(); showToast(`Авто-пук добавлен! +1/сек`); } else showToast(`Мало какашек!`); }
+    function buyDoubler() { if (!doublerPurchased && score >= DOUBLER_COST) { score -= DOUBLER_COST; doublerPurchased = true; updateUI(); showToast(`ДВОЙНАЯ ПОТУЖНОСТЬ! 🌀`); } else if(!doublerPurchased) showToast(`Нужно ${DOUBLER_COST} пуков!`); }
+    function buyCrit() { if (!critPurchased && score >= CRIT_COST) { score -= CRIT_COST; critPurchased = true; updateUI(); showToast(`Громкий пуч разблокирован! ⚡`); } else if(!critPurchased) showToast(`Недостаточно какашек!`); }
+    function buyCosmetic() { if (!cosmeticPurchased && score >= COSMETIC_COST) { score -= COSMETIC_COST; cosmeticPurchased = true; applyCosmeticEffect(); updateUI(); showToast(`Персик засиял ✨`); } else if(!cosmeticPurchased) showToast(`Нужно ${COSMETIC_COST} 💩`); }
+    function buyHeavyPush() { if (!heavyPush && score >= HEAVY_COST) { score -= HEAVY_COST; heavyPush = true; updateUI(); showToast(`Тяжёлый пуш активирован! +2 к силе`); } else if(!heavyPush) showToast(`Не хватает пуков!`); }
+    function buyLuckyPants() { if (!luckyPants && score >= LUCKY_COST) { score -= LUCKY_COST; luckyPants = true; updateUI(); showToast(`Счастливые штаны надеты! +10% к криту 🍀`); } else if(!luckyPants) showToast(`Недостаточно 💩`); }
+    function buyMeteorism() { if (!meteorism && score >= METEORISM_COST) { score -= METEORISM_COST; meteorism = true; startMeteorismInterval(); updateUI(); showToast(`Метеоризм! Газы будут приносить пуки каждые 10 сек 💨`); } else if(!meteorism) showToast(`Не хватает какашек!`); }
     
-    // Клик по персику
-    function onPeachClick(event) {
-        const { value: gain, isCrit } = getFinalClickValueWithCrit();
-        if (gain <= 0) return;
-        score += gain;
-        updateUI();
-        peachDiv.style.transform = 'scale(0.92)';
-        setTimeout(() => { peachDiv.style.transform = ''; }, 100);
-        if (cosmeticPurchased) {
-            peachDiv.classList.add('peach-glitter');
-            setTimeout(() => peachDiv.classList.remove('peach-glitter'), 280);
-        }
-        const rect = peachDiv.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
-        showClickEffect(x, y, gain, isCrit);
-        if (isCrit) showToast(`🍑 ГРОМКИЙ ПУЧ! x3 🍑`, '#f39c12');
-    }
-    
-    // Автодобыча (секундный тикер)
+    // Авто-пуки
     let passiveInterval = null;
     function startPassiveIncome() {
         if (passiveInterval) clearInterval(passiveInterval);
@@ -634,7 +693,7 @@
             if (autoCount > 0) {
                 score += autoCount;
                 updateUI();
-                if (Math.random() < 0.15) showToast(`💨 +${autoCount} авто-пуков`, '#b8895a');
+                if (Math.random() < 0.1) showToast(`💨 +${autoCount} авто-пуков`, '#b8895a');
             }
         }, 1000);
     }
@@ -643,13 +702,17 @@
     function openShop() { updateShopPanel(); shopModal.style.display = 'flex'; }
     function closeShop() { shopModal.style.display = 'none'; }
     
-    // Инициализация
+    // Инициализация событий мультитач и мыши
     function init() {
         loadGame();
         updateUI();
         startPassiveIncome();
         if (meteorism) startMeteorismInterval();
-        peachDiv.addEventListener('click', onPeachClick);
+        // Поддержка мультитач (основное)
+        peachDiv.addEventListener('touchstart', onPeachTouchStart, { passive: false });
+        peachDiv.addEventListener('mousedown', onPeachMouseClick);
+        // Доп защита от контекстного меню на персике
+        peachDiv.addEventListener('contextmenu', (e) => e.preventDefault());
         openShopBtn.addEventListener('click', openShop);
         closeShopBtn.addEventListener('click', closeShop);
         window.addEventListener('click', (e) => { if (e.target === shopModal) closeShop(); });
