@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-title" content="Пупок FM">
     <meta name="theme-color" id="theme-color-meta" content="#b8a9d2">
     
-    <!-- iOS icons -->
     <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
     <link rel="apple-touch-icon" href="icons/icon-512x512.png">
     <link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96x96.png">
@@ -31,6 +30,9 @@
             padding: 0;
             width: 100%;
             height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
 
         * {
@@ -41,7 +43,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* ---------- ПЕРЕМЕННЫЕ (МЯГКИЕ ЦВЕТА) ---------- */
         body {
             --bg-gradient-start: #f3e8fd;
             --bg-gradient-end: #e2d9f0;
@@ -357,7 +358,7 @@
             text-overflow: ellipsis;
         }
 
-        /* ----- ПРОГРЕСС-БАР С ЗАПОЛНЕНИЕМ (БЕЗ ДЕФОРМАЦИИ) ----- */
+        /* ----- ПРОГРЕСС-БАР ----- */
         .progress-slider {
             width: 100%;
             height: 6px;
@@ -391,7 +392,6 @@
             z-index: 2;
         }
 
-        /* заполнение без сквадрачивания */
         .progress-slider {
             background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill-percent, 0%), transparent var(--fill-percent, 0%));
             background-size: 100% 100%;
@@ -425,7 +425,7 @@
 
         .hidden { display: none !important; }
 
-        /* ---------- МОДАЛЬНОЕ ОКНО ПЛЕЙЛИСТОВ (ПОЛНОЭКРАННОЕ) ---------- */
+        /* ---------- МОДАЛЬНОЕ ОКНО ПЛЕЙЛИСТОВ ---------- */
         .playlists-modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -437,7 +437,7 @@
             flex-direction: column;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s;
+            transition: opacity 0.25s ease;
             padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
         }
 
@@ -529,6 +529,10 @@
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+            background: var(--panel-bg);
+            border-radius: 36px;
+            padding: 16px 8px 16px 16px;
+            margin-top: 8px;
         }
         .playlist-list::-webkit-scrollbar { width: 6px; }
         .playlist-list::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 10px; }
@@ -568,6 +572,13 @@
             font-size: 18px;
         }
 
+        /* панель управления в деталях плейлиста */
+        .playlist-detail-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
         /* Окно выбора треков */
         .track-selector-modal {
             position: fixed;
@@ -581,6 +592,7 @@
             opacity: 0;
             pointer-events: none;
             padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
+            transition: opacity 0.2s;
         }
         .track-selector-modal.visible {
             opacity: 1;
@@ -621,7 +633,6 @@
             margin-bottom: 8px;
             color: var(--text-primary);
         }
-        /* Кастомный круглый чекбокс */
         .selector-item input[type="checkbox"] {
             -webkit-appearance: none;
             appearance: none;
@@ -645,7 +656,7 @@
             color: var(--text-primary);
         }
 
-        /* Кастомный диалог подтверждения (промпт) */
+        /* Кастомный диалог подтверждения */
         .custom-prompt-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -686,6 +697,7 @@
             border-radius: 30px;
             border: none;
             font-weight: 600;
+            font-size: 17px;
             cursor: pointer;
         }
         .prompt-btn.cancel { background: var(--icon-bg); color: var(--delete-color); }
@@ -722,7 +734,7 @@
     </div>
 </div>
 
-<!-- Модалка плейлистов (полноэкранная) -->
+<!-- Модалка плейлистов -->
 <div class="playlists-modal" id="playlists-modal">
     <div class="playlists-panel" id="playlists-panel"></div>
 </div>
@@ -832,7 +844,7 @@
                 overlay.className = 'custom-prompt-overlay';
                 overlay.innerHTML = `
                     <div class="custom-prompt">
-                        <h3 style="color: var(--text-primary); margin-bottom: 8px;">${title}</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 8px; font-size: 20px;">${title}</h3>
                         <input type="text" id="prompt-input" value="${defaultValue}" autofocus>
                         <div class="prompt-buttons">
                             <button class="prompt-btn cancel">Отмена</button>
@@ -863,7 +875,7 @@
                 overlay.className = 'custom-prompt-overlay';
                 overlay.innerHTML = `
                     <div class="custom-prompt">
-                        <h3 style="color: var(--text-primary); margin-bottom: 20px;">${message}</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 20px; font-size: 20px;">${message}</h3>
                         <div class="prompt-buttons">
                             <button class="prompt-btn cancel">Отмена</button>
                             <button class="prompt-btn confirm">Да</button>
@@ -880,14 +892,31 @@
         // ---------- ФУНКЦИИ ПЛЕЕРА ----------
         function updateEmptyMessage() { emptyMsg.style.display = playlistEl.children.length ? 'none' : 'block'; }
         function updatePlayButton(id, isPlaying) {
-            const t = tracksMap.get(id); if(!t) return;
+            const t = tracksMap.get(id);
+            if (!t) return;
             t.playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
             t.playBtn.classList.toggle('playing', isPlaying);
+            // обновить также в плейлисте, если открыт
+            const playlistBtn = document.querySelector(`.playlist-list .play-pause-btn[data-id="${id}"]`);
+            if (playlistBtn) {
+                playlistBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+                playlistBtn.classList.toggle('playing', isPlaying);
+            }
         }
         function updateSliderFill(slider, value, max) {
             if (!slider) return;
             const percent = max > 0 ? (value / max) * 100 : 0;
             slider.style.setProperty('--fill-percent', percent + '%');
+        }
+
+        // Обновление всех слайдеров с данным trackId
+        function updateAllSlidersForTrack(trackId, current, duration) {
+            const sliders = document.querySelectorAll(`.progress-slider[data-track-id="${trackId}"]`);
+            sliders.forEach(slider => {
+                slider.value = current;
+                updateSliderFill(slider, current, duration);
+                if (!isNaN(duration) && duration > 0) slider.max = Math.floor(duration);
+            });
         }
 
         audio.addEventListener('timeupdate', () => {
@@ -899,6 +928,8 @@
             track.slider.value = current;
             updateSliderFill(track.slider, current, duration);
             if (!isNaN(duration) && duration > 0) track.slider.max = Math.floor(duration);
+            // обновить слайдеры в плейлистах
+            updateAllSlidersForTrack(activeTrackId, current, duration);
         });
 
         audio.addEventListener('ended', () => {
@@ -981,6 +1012,7 @@
             const infoDiv = document.createElement('div'); infoDiv.className = 'track-info';
             const nameDiv = document.createElement('div'); nameDiv.className = 'track-name'; nameDiv.textContent = track.name;
             const slider = document.createElement('input'); slider.type = 'range'; slider.className = 'progress-slider'; slider.min = 0; slider.max = track.duration||0; slider.value=0; slider.step=0.1;
+            slider.dataset.trackId = track.id;
             infoDiv.appendChild(nameDiv); infoDiv.appendChild(slider);
             const playBtn = document.createElement('div'); playBtn.className = 'play-pause-btn'; playBtn.innerHTML = '<i class="fas fa-play"></i>';
             row.appendChild(actionLeft); row.appendChild(infoDiv); row.appendChild(playBtn);
@@ -1007,7 +1039,13 @@
 
         function filterTracks() {
             const q = searchInput.value.trim().toLowerCase();
-            tracksMap.forEach((t) => t.element.style.display = (!q || t.name.toLowerCase().includes(q)) ? 'block' : 'none');
+            let visibleCount = 0;
+            tracksMap.forEach((t) => {
+                const visible = !q || t.name.toLowerCase().includes(q);
+                t.element.style.display = visible ? 'block' : 'none';
+                if (visible) visibleCount++;
+            });
+            searchInput.placeholder = `Поиск${visibleCount !== tracksMap.size ? ` (${visibleCount})` : ''}`;
         }
         searchInput.addEventListener('input', filterTracks);
 
@@ -1022,6 +1060,7 @@
                 addTrackToUI(track);
             }
             fileInput.value = '';
+            filterTracks();
         });
         function getAudioDuration(blob) {
             return new Promise((resolve) => {
@@ -1031,7 +1070,6 @@
             });
         }
 
-        // Подтверждение удаления трека (галочка/крестик)
         function showDeleteConfirmation(id) {
             const track = tracksMap.get(id); if(!track) return;
             const left = track.element.querySelector('.action-left');
@@ -1075,7 +1113,8 @@
                 const name = await customPrompt('Название плейлиста');
                 if(name) { await createPlaylist(name); renderPlaylistsList(); }
             });
-            document.getElementById('playlist-search-input').addEventListener('input', filterPlaylists);
+            const searchInput = document.getElementById('playlist-search-input');
+            searchInput.addEventListener('input', filterPlaylists);
             loadPlaylistsToContainer();
         }
 
@@ -1110,6 +1149,12 @@
                 const confirmed = await customConfirm(`Удалить плейлист «${pl.name}»?`);
                 if(confirmed) { await deletePlaylist(id); renderPlaylistsList(); }
             }));
+            // обновление плейсхолдера с количеством
+            const searchField = document.getElementById('playlist-search-input');
+            if (searchField) {
+                const total = playlists.length;
+                searchField.placeholder = `Поиск${filtered.length !== total ? ` (${filtered.length})` : ''}`;
+            }
         }
         function filterPlaylists() { loadPlaylistsToContainer(); }
 
@@ -1125,7 +1170,11 @@
                     <h2>${playlist.name}</h2>
                     <button class="close-panel-btn" id="back-from-detail"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="playlist-search"><i class="fas fa-search"></i><input type="text" id="detail-search" placeholder="Поиск"></div>
+                <div class="playlist-detail-controls">
+                    <div class="playlist-search" style="flex:1; margin-bottom:0;"><i class="fas fa-search"></i><input type="text" id="detail-search" placeholder="Поиск"></div>
+                    <div class="control-btn" id="detail-autoplay-btn" title="Автовоспроизведение"><i class="fas fa-play-circle"></i></div>
+                    <div class="control-btn" id="detail-repeat-btn" title="Режим повтора"><i class="fas fa-repeat"></i></div>
+                </div>
                 <button class="add-tracks-btn" id="add-tracks-to-playlist"><i class="fas fa-plus"></i> Добавить треки</button>
                 <div class="playlist-list" id="playlist-tracks-container"></div>
             `;
@@ -1134,7 +1183,30 @@
                 pendingAddToPlaylistId = currentPlaylistId;
                 showTrackSelector();
             });
-            document.getElementById('detail-search').addEventListener('input', ()=> loadPlaylistTracks(currentPlaylistId));
+            const detailSearch = document.getElementById('detail-search');
+            detailSearch.addEventListener('input', ()=> loadPlaylistTracks(currentPlaylistId));
+            
+            // синхронизация кнопок автовоспроизведения и повтора
+            const detailAutoplay = document.getElementById('detail-autoplay-btn');
+            const detailRepeat = document.getElementById('detail-repeat-btn');
+            detailAutoplay.classList.toggle('active', autoplayEnabled);
+            detailRepeat.classList.toggle('active', repeatMode === 1);
+            detailRepeat.classList.toggle('repeat-one', repeatMode === 2);
+            
+            detailAutoplay.addEventListener('click', ()=>{
+                autoplayEnabled = !autoplayEnabled;
+                localStorage.setItem('autoplay', autoplayEnabled);
+                autoplayBtn.classList.toggle('active', autoplayEnabled);
+                detailAutoplay.classList.toggle('active', autoplayEnabled);
+            });
+            detailRepeat.addEventListener('click', ()=>{
+                repeatMode = (repeatMode + 1) % 3;
+                localStorage.setItem('repeatMode', repeatMode);
+                updateRepeatButton();
+                detailRepeat.classList.toggle('active', repeatMode === 1);
+                detailRepeat.classList.toggle('repeat-one', repeatMode === 2);
+            });
+
             await loadPlaylistTracks(currentPlaylistId);
         }
 
@@ -1144,17 +1216,48 @@
             const allTracks = await getAllTracksFromDB();
             const q = filterText || document.getElementById('detail-search')?.value.toLowerCase() || '';
             const tracks = allTracks.filter(t=>trackIds.includes(t.id) && (!q || t.name.toLowerCase().includes(q)));
-            container.innerHTML = tracks.map(t=>`
+            container.innerHTML = tracks.map(t=>{
+                const isActive = (activeTrackId === t.id);
+                const isPlaying = isActive && !audio.paused;
+                return `
                 <div class="track-item" data-id="${t.id}">
                     <div class="track-row">
                         <div class="action-left">
                             <div class="delete-btn" data-id="${t.id}"><i class="fas fa-trash-alt"></i></div>
                         </div>
-                        <div class="track-info"><div class="track-name">${t.name}</div></div>
-                        <div class="play-pause-btn" data-id="${t.id}"><i class="fas fa-play"></i></div>
+                        <div class="track-info">
+                            <div class="track-name">${t.name}</div>
+                            <input type="range" class="progress-slider" min="0" max="${t.duration||0}" value="${isActive ? audio.currentTime : 0}" step="0.1" data-track-id="${t.id}">
+                        </div>
+                        <div class="play-pause-btn" data-id="${t.id}">
+                            <i class="fas fa-${isPlaying ? 'pause' : 'play'}"></i>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
+            // инициализация слайдеров
+            container.querySelectorAll('.progress-slider').forEach(slider => {
+                const trackId = slider.dataset.trackId;
+                const track = allTracks.find(t=>t.id === trackId);
+                if (track) {
+                    const val = (activeTrackId === trackId) ? audio.currentTime : 0;
+                    slider.value = val;
+                    updateSliderFill(slider, val, track.duration);
+                }
+                slider.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    updateSliderFill(slider, val, slider.max);
+                    if (activeTrackId === trackId) audio.currentTime = val;
+                    else {
+                        const trackData = allTracks.find(t=>t.id === trackId);
+                        if (trackData && !tracksMap.has(trackId)) {
+                            addTrackToUI(trackData);
+                        }
+                        activateTrack(trackId, false);
+                        audio.currentTime = val;
+                    }
+                });
+            });
             container.querySelectorAll('.delete-btn').forEach(b=>{
                 b.addEventListener('click', (e)=>{
                     e.stopPropagation();
@@ -1173,6 +1276,12 @@
                     }
                 });
             });
+            // обновление плейсхолдера поиска
+            const searchField = document.getElementById('detail-search');
+            if (searchField) {
+                const total = trackIds.length;
+                searchField.placeholder = `Поиск${tracks.length !== total ? ` (${tracks.length})` : ''}`;
+            }
         }
 
         function showPlaylistTrackDeleteConfirmation(itemElement, playlistId, trackId) {
@@ -1207,7 +1316,10 @@
                 </div>
             `).join('');
         }
-        selectorCancel.addEventListener('click', ()=>{ selectorModal.classList.remove('visible'); });
+        selectorCancel.addEventListener('click', ()=>{
+            selectorModal.classList.remove('visible');
+            pendingAddToPlaylistId = null;
+        });
         selectorConfirm.addEventListener('click', async ()=>{
             const checked = [...selectorList.querySelectorAll('input:checked')].map(cb=>cb.value);
             if(pendingAddToPlaylistId && checked.length) {
@@ -1217,6 +1329,7 @@
             selectorModal.classList.remove('visible');
             pendingAddToPlaylistId = null;
         });
+        selectorModal.addEventListener('click', (e)=>{ if(e.target===selectorModal) selectorCancel.click(); });
 
         // Кнопки управления
         autoplayBtn.addEventListener('click', ()=>{ autoplayEnabled=!autoplayEnabled; localStorage.setItem('autoplay', autoplayEnabled); autoplayBtn.classList.toggle('active', autoplayEnabled); });
@@ -1237,6 +1350,7 @@
             applyTheme();
             const tracks = await getAllTracksFromDB();
             tracks.forEach(t=>addTrackToUI(t));
+            filterTracks();
         })();
 
     })();
