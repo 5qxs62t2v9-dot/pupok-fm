@@ -64,7 +64,6 @@
             --control-btn-bg: var(--icon-bg);
             --control-btn-color: var(--accent);
             --panel-separator: rgba(130, 100, 160, 0.1);
-            --modal-overlay: rgba(30, 10, 40, 0.3);
             
             background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
             min-height: 100vh;
@@ -97,7 +96,6 @@
             --control-btn-bg: #3d2d50;
             --control-btn-color: #c7b0e0;
             --panel-separator: rgba(220, 190, 250, 0.15);
-            --modal-overlay: rgba(10, 5, 15, 0.5);
         }
 
         /* ---------- ОСНОВНОЙ КОНТЕЙНЕР ---------- */
@@ -355,13 +353,15 @@
             text-overflow: ellipsis;
         }
 
-        /* ----- ПРОГРЕСС-БАР С ЗАПОЛНЕНИЕМ ----- */
+        /* ----- ПРОГРЕСС-БАР С ЗАПОЛНЕНИЕМ (исправленные скругления) ----- */
         .progress-slider {
             width: 100%;
             height: 6px;
             -webkit-appearance: none;
             background: transparent;
             cursor: pointer;
+            border-radius: 20px;
+            overflow: hidden;
         }
 
         .progress-slider:focus {
@@ -388,12 +388,13 @@
             z-index: 2;
         }
 
-        /* заполнение слева от бегунка — будет задаваться через JS */
+        /* заполнение слева от бегунка — задаётся через JS, скругления наследуются */
         .progress-slider {
             background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill-percent, 0%), transparent var(--fill-percent, 0%));
             background-size: 100% 100%;
             background-repeat: no-repeat;
             background-position: left center;
+            border-radius: 20px;
         }
 
         .play-pause-btn {
@@ -420,218 +421,6 @@
         }
 
         .hidden { display: none !important; }
-
-        /* ---------- МОДАЛЬНОЕ ОКНО ПЛЕЙЛИСТОВ ---------- */
-        .playlists-modal {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--modal-overlay);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .playlists-modal.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .playlists-panel {
-            background: var(--container-bg);
-            backdrop-filter: blur(25px);
-            width: 100%;
-            max-width: 600px;
-            height: 85vh;
-            border-radius: 40px 40px 0 0;
-            padding: 20px 16px 30px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .playlists-modal.visible .playlists-panel {
-            transform: translateY(0);
-        }
-
-        .panel-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-        }
-
-        .panel-header h2 {
-            flex: 1;
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .close-panel-btn, .back-btn {
-            background: var(--icon-bg);
-            width: 48px;
-            height: 48px;
-            border-radius: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            color: var(--accent);
-            font-size: 22px;
-            backdrop-filter: blur(5px);
-        }
-
-        .playlist-search {
-            margin-bottom: 16px;
-            background: var(--panel-bg);
-            border-radius: 40px;
-            padding: 10px 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(5px);
-        }
-        .playlist-search i { color: var(--accent); }
-        .playlist-search input {
-            background: transparent;
-            border: none;
-            outline: none;
-            width: 100%;
-            color: var(--text-primary);
-        }
-
-        .create-playlist-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 40px;
-            padding: 14px;
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: 0.1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            backdrop-filter: blur(5px);
-        }
-        .create-playlist-btn:active { opacity: 0.8; }
-
-        .playlist-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .playlist-item {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 16px 18px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            backdrop-filter: blur(5px);
-        }
-        .playlist-info {
-            flex: 1;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .playlist-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .icon-btn {
-            background: var(--icon-bg);
-            width: 44px;
-            height: 44px;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            color: var(--accent);
-            font-size: 18px;
-        }
-
-        /* экран внутри плейлиста */
-        .playlist-detail-view {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        .add-tracks-btn {
-            background: var(--accent-light);
-            color: white;
-            border: none;
-            border-radius: 40px;
-            padding: 12px;
-            margin: 12px 0;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* окно выбора треков */
-        .track-selector-modal {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(5px);
-            z-index: 1100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .track-selector-modal.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .selector-panel {
-            background: var(--container-bg);
-            width: 90%;
-            max-width: 500px;
-            max-height: 70vh;
-            border-radius: 36px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        .selector-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-        .selector-list {
-            overflow-y: auto;
-            max-height: 50vh;
-        }
-        .selector-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: var(--card-bg);
-            border-radius: 20px;
-            margin-bottom: 8px;
-        }
-        .selector-item input[type="checkbox"] {
-            width: 24px; height: 24px;
-            accent-color: var(--accent);
-        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -645,14 +434,13 @@
         <input type="file" id="file-input" accept=".mp3,.flac,audio/mpeg,audio/flac" multiple>
     </div>
 
-    <!-- Поиск + кнопки управления -->
+    <!-- Поиск + кнопки управления (без плейлистов) -->
     <div class="search-row">
         <div class="search-panel">
             <i class="fas fa-search"></i>
-            <input type="text" id="search-input" placeholder="Поиск" autocomplete="off">
+            <input type="text" id="search-input" placeholder="Поиск (0)" autocomplete="off">
         </div>
         <div class="playback-controls">
-            <div class="control-btn" id="playlists-btn" title="Плейлисты"><i class="fas fa-folder-open"></i></div>
             <div class="control-btn" id="autoplay-btn" title="Автовоспроизведение"><i class="fas fa-play-circle"></i></div>
             <div class="control-btn" id="repeat-btn" title="Режим повтора"><i class="fas fa-repeat"></i></div>
         </div>
@@ -664,27 +452,6 @@
             <div id="playlist"></div>
             <div id="empty-message" class="empty-message">🎵 Плейлист пуст</div>
         </div>
-    </div>
-</div>
-
-<!-- Модальное окно плейлистов -->
-<div class="playlists-modal" id="playlists-modal">
-    <div class="playlists-panel" id="playlists-panel">
-        <!-- Динамический контент будет вставляться сюда -->
-    </div>
-</div>
-
-<!-- Модалка выбора треков -->
-<div class="track-selector-modal" id="track-selector-modal">
-    <div class="selector-panel">
-        <div class="selector-header">
-            <h3>Выберите треки</h3>
-            <div style="display: flex; gap: 10px;">
-                <button class="icon-btn" id="selector-cancel"><i class="fas fa-times"></i></button>
-                <button class="icon-btn" id="selector-confirm"><i class="fas fa-check"></i></button>
-            </div>
-        </div>
-        <div class="selector-list" id="selector-list"></div>
     </div>
 </div>
 
@@ -701,9 +468,9 @@
             });
         }
 
-        // ---------- БАЗА ДАННЫХ ----------
+        // ---------- БАЗА ДАННЫХ (только треки) ----------
         const DB_NAME = 'PupokFMDB';
-        const DB_VERSION = 3; // обновим версию для новых хранилищ
+        const DB_VERSION = 4; // увеличиваем версию, удаляем старые хранилища плейлистов
         let db = null;
 
         function openDB() {
@@ -713,17 +480,16 @@
                 request.onsuccess = () => { db = request.result; resolve(db); };
                 request.onupgradeneeded = (evt) => {
                     const db = evt.target.result;
+                    // Удаляем устаревшие хранилища, если они есть
+                    if (db.objectStoreNames.contains('playlists')) {
+                        db.deleteObjectStore('playlists');
+                    }
+                    if (db.objectStoreNames.contains('playlistTracks')) {
+                        db.deleteObjectStore('playlistTracks');
+                    }
+                    // Создаём хранилище треков, если его нет
                     if (!db.objectStoreNames.contains('tracks')) {
                         db.createObjectStore('tracks', { keyPath: 'id' });
-                    }
-                    if (!db.objectStoreNames.contains('playlists')) {
-                        const plStore = db.createObjectStore('playlists', { keyPath: 'id' });
-                        plStore.createIndex('by_name', 'name');
-                    }
-                    if (!db.objectStoreNames.contains('playlistTracks')) {
-                        const ptStore = db.createObjectStore('playlistTracks', { keyPath: 'id', autoIncrement: true });
-                        ptStore.createIndex('playlistId', 'playlistId');
-                        ptStore.createIndex('trackId', 'trackId');
                     }
                 };
             });
@@ -757,28 +523,31 @@
         const searchInput = document.getElementById('search-input');
         const autoplayBtn = document.getElementById('autoplay-btn');
         const repeatBtn = document.getElementById('repeat-btn');
-        const playlistsBtn = document.getElementById('playlists-btn');
-        const modal = document.getElementById('playlists-modal');
-        const panelContainer = document.getElementById('playlists-panel');
-        const selectorModal = document.getElementById('track-selector-modal');
-        const selectorList = document.getElementById('selector-list');
-        const selectorCancel = document.getElementById('selector-cancel');
-        const selectorConfirm = document.getElementById('selector-confirm');
 
         let autoplayEnabled = localStorage.getItem('autoplay') === 'true';
         let repeatMode = parseInt(localStorage.getItem('repeatMode') || '0');
         const tracksMap = new Map(); // id -> { element, name, blob, objectURL, duration, slider, playBtn }
         let activeTrackId = null;
-        let currentPlaylistId = null; // для экрана внутри плейлиста
-        let pendingAddToPlaylistId = null; // для выбора треков
+
+        // ---------- ФУНКЦИЯ ОБНОВЛЕНИЯ ПОДСКАЗКИ ПОИСКА ----------
+        function updateSearchPlaceholder() {
+            const total = tracksMap.size;
+            searchInput.placeholder = `Поиск (${total})`;
+        }
 
         // ---------- ФУНКЦИИ ПЛЕЕРА (основные) ----------
-        function updateEmptyMessage() { emptyMsg.style.display = playlistEl.children.length ? 'none' : 'block'; }
+        function updateEmptyMessage() { 
+            const hasTracks = playlistEl.children.length > 0;
+            emptyMsg.style.display = hasTracks ? 'none' : 'block';
+            updateSearchPlaceholder();
+        }
+        
         function updatePlayButton(id, isPlaying) {
             const t = tracksMap.get(id); if(!t) return;
             t.playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
             t.playBtn.classList.toggle('playing', isPlaying);
         }
+        
         function updateSliderFill(slider, value, max) {
             if (!slider) return;
             const percent = max > 0 ? (value / max) * 100 : 0;
@@ -857,8 +626,6 @@
             tracksMap.delete(id);
             updateEmptyMessage();
             filterTracks();
-            // удалить из всех плейлистов
-            await removeTrackFromAllPlaylists(id);
         }
 
         // ---------- РАБОТА С БД (треки) ----------
@@ -928,196 +695,6 @@
             });
         }
 
-        // ---------- ПЛЕЙЛИСТЫ (БД) ----------
-        async function createPlaylist(name) {
-            await openDB();
-            const id = crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36);
-            const playlist = { id, name };
-            return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); const r = tx.objectStore('playlists').add(playlist); r.onsuccess=()=>res(id); r.onerror=rej; });
-        }
-        async function getAllPlaylists() {
-            await openDB();
-            return new Promise((res,rej)=>{ const tx = db.transaction('playlists'); const r = tx.objectStore('playlists').getAll(); r.onsuccess=()=>res(r.result); r.onerror=rej; });
-        }
-        async function updatePlaylist(id, name) {
-            await openDB();
-            return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); const store = tx.objectStore('playlists'); const get = store.get(id); get.onsuccess=()=>{ const pl = get.result; pl.name = name; store.put(pl).onsuccess=res; }; get.onerror=rej; });
-        }
-        async function deletePlaylist(id) {
-            await openDB();
-            await new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks','readwrite'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.openCursor(IDBKeyRange.only(id)); r.onsuccess=(e)=>{ const cursor=e.target.result; if(cursor){ cursor.delete(); cursor.continue(); } else res(); }; r.onerror=rej; });
-            return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); tx.objectStore('playlists').delete(id).onsuccess=res; });
-        }
-        async function addTracksToPlaylist(playlistId, trackIds) {
-            await openDB();
-            const tx = db.transaction('playlistTracks','readwrite');
-            const store = tx.objectStore('playlistTracks');
-            for (const tid of trackIds) { store.add({ playlistId, trackId: tid }); }
-            return new Promise((res,rej)=>{ tx.oncomplete=res; tx.onerror=rej; });
-        }
-        async function getPlaylistTracks(playlistId) {
-            await openDB();
-            return new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.getAll(playlistId); r.onsuccess=()=>res(r.result.map(i=>i.trackId)); r.onerror=rej; });
-        }
-        async function removeTrackFromPlaylist(playlistId, trackId) {
-            await openDB();
-            return new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks','readwrite'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.openCursor(IDBKeyRange.only(playlistId)); r.onsuccess=(e)=>{ const c=e.target.result; if(c){ if(c.value.trackId===trackId) c.delete(); c.continue(); } else res(); }; r.onerror=rej; });
-        }
-        async function removeTrackFromAllPlaylists(trackId) {
-            await openDB();
-            return new Promise((res)=>{ const tx = db.transaction('playlistTracks','readwrite'); const store = tx.objectStore('playlistTracks'); const index = store.index('trackId'); const r = index.openCursor(IDBKeyRange.only(trackId)); r.onsuccess=(e)=>{ const c=e.target.result; if(c){ c.delete(); c.continue(); } else res(); }; });
-        }
-
-        // ---------- ОТОБРАЖЕНИЕ МОДАЛКИ ПЛЕЙЛИСТОВ ----------
-        function showPlaylistsModal() {
-            renderPlaylistsList();
-            modal.classList.add('visible');
-        }
-        function hidePlaylistsModal() { modal.classList.remove('visible'); }
-
-        function renderPlaylistsList() {
-            panelContainer.innerHTML = `
-                <div class="panel-header">
-                    <h2>Плейлисты</h2>
-                    <button class="close-panel-btn" id="close-modal-btn"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="playlist-search"><i class="fas fa-search"></i><input type="text" id="playlist-search-input" placeholder="Поиск плейлистов"></div>
-                <button class="create-playlist-btn" id="create-playlist-btn"><i class="fas fa-plus-circle"></i> Новый плейлист</button>
-                <div class="playlist-list" id="playlist-list-container"></div>
-            `;
-            document.getElementById('close-modal-btn').addEventListener('click', hidePlaylistsModal);
-            document.getElementById('create-playlist-btn').addEventListener('click', async ()=>{
-                const name = prompt('Название плейлиста:');
-                if(name) { await createPlaylist(name); renderPlaylistsList(); }
-            });
-            const searchInput = document.getElementById('playlist-search-input');
-            searchInput.addEventListener('input', filterPlaylists);
-            loadPlaylistsToContainer();
-        }
-
-        async function loadPlaylistsToContainer() {
-            const container = document.getElementById('playlist-list-container');
-            const playlists = await getAllPlaylists();
-            const q = document.getElementById('playlist-search-input')?.value.toLowerCase() || '';
-            const filtered = playlists.filter(p=>p.name.toLowerCase().includes(q));
-            container.innerHTML = filtered.map(p=>`
-                <div class="playlist-item" data-id="${p.id}">
-                    <div class="playlist-info">${p.name}</div>
-                    <div class="playlist-actions">
-                        <button class="icon-btn edit-playlist-btn" data-id="${p.id}"><i class="fas fa-pencil-alt"></i></button>
-                        <button class="icon-btn delete-playlist-btn" data-id="${p.id}"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>
-            `).join('');
-            container.querySelectorAll('.playlist-item').forEach(el=>{
-                el.addEventListener('click', (e)=>{
-                    if(e.target.closest('button')) return;
-                    openPlaylistDetail(el.dataset.id);
-                });
-            });
-            container.querySelectorAll('.edit-playlist-btn').forEach(b=>b.addEventListener('click', async (e)=>{
-                e.stopPropagation();
-                const id = b.dataset.id;
-                const pl = (await getAllPlaylists()).find(p=>p.id===id);
-                const newName = prompt('Новое название', pl?.name);
-                if(newName) { await updatePlaylist(id, newName); renderPlaylistsList(); }
-            }));
-            container.querySelectorAll('.delete-playlist-btn').forEach(b=>b.addEventListener('click', async (e)=>{
-                e.stopPropagation();
-                if(confirm('Удалить плейлист?')) { await deletePlaylist(b.dataset.id); renderPlaylistsList(); }
-            }));
-        }
-        function filterPlaylists() { loadPlaylistsToContainer(); }
-
-        function openPlaylistDetail(playlistId) {
-            currentPlaylistId = playlistId;
-            renderPlaylistDetail();
-        }
-
-        async function renderPlaylistDetail() {
-            const playlist = (await getAllPlaylists()).find(p=>p.id===currentPlaylistId);
-            panelContainer.innerHTML = `
-                <div class="panel-header">
-                    <button class="back-btn" id="back-to-playlists"><i class="fas fa-arrow-left"></i></button>
-                    <h2>${playlist.name}</h2>
-                    <button class="close-panel-btn" id="close-detail-btn"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="playlist-search"><i class="fas fa-search"></i><input type="text" id="detail-search" placeholder="Поиск в плейлисте"></div>
-                <button class="add-tracks-btn" id="add-tracks-to-playlist"><i class="fas fa-plus"></i> Добавить треки</button>
-                <div class="playlist-list" id="playlist-tracks-container"></div>
-            `;
-            document.getElementById('back-to-playlists').addEventListener('click', ()=>{ renderPlaylistsList(); });
-            document.getElementById('close-detail-btn').addEventListener('click', hidePlaylistsModal);
-            document.getElementById('add-tracks-to-playlist').addEventListener('click', ()=>{
-                pendingAddToPlaylistId = currentPlaylistId;
-                showTrackSelector();
-            });
-            const searchInput = document.getElementById('detail-search');
-            searchInput.addEventListener('input', ()=> loadPlaylistTracks(currentPlaylistId, searchInput.value));
-            await loadPlaylistTracks(currentPlaylistId);
-        }
-
-        async function loadPlaylistTracks(playlistId, filterText = '') {
-            const container = document.getElementById('playlist-tracks-container');
-            const trackIds = await getPlaylistTracks(playlistId);
-            const allTracks = await getAllTracksFromDB();
-            const tracks = allTracks.filter(t=>trackIds.includes(t.id) && (!filterText || t.name.toLowerCase().includes(filterText.toLowerCase())));
-            container.innerHTML = tracks.map(t=>`
-                <div class="track-item" data-id="${t.id}">
-                    <div class="track-row">
-                        <div class="action-left">
-                            <div class="delete-btn" data-id="${t.id}"><i class="fas fa-trash-alt"></i></div>
-                        </div>
-                        <div class="track-info"><div class="track-name">${t.name}</div></div>
-                        <div class="play-pause-btn" data-id="${t.id}"><i class="fas fa-play"></i></div>
-                    </div>
-                </div>
-            `).join('');
-            container.querySelectorAll('.delete-btn').forEach(b=>b.addEventListener('click', async (e)=>{
-                e.stopPropagation();
-                const tid = b.dataset.id;
-                await removeTrackFromPlaylist(playlistId, tid);
-                loadPlaylistTracks(playlistId);
-            }));
-            container.querySelectorAll('.play-pause-btn').forEach(b=>{
-                b.addEventListener('click', ()=>{
-                    const tid = b.dataset.id;
-                    const track = tracksMap.get(tid);
-                    if(track) togglePlay(tid);
-                    else {
-                        // если трек есть в БД, но не в UI (редко)
-                        const t = allTracks.find(t=>t.id===tid);
-                        if(t) { addTrackToUI(t); togglePlay(tid); }
-                    }
-                });
-            });
-        }
-
-        // Выбор треков
-        function showTrackSelector() {
-            selectorModal.classList.add('visible');
-            renderSelectorList();
-        }
-        async function renderSelectorList() {
-            const tracks = await getAllTracksFromDB();
-            selectorList.innerHTML = tracks.map(t=>`
-                <div class="selector-item">
-                    <input type="checkbox" value="${t.id}" id="chk_${t.id}">
-                    <label for="chk_${t.id}">${t.name}</label>
-                </div>
-            `).join('');
-        }
-        selectorCancel.addEventListener('click', ()=>{ selectorModal.classList.remove('visible'); });
-        selectorConfirm.addEventListener('click', async ()=>{
-            const checked = [...selectorList.querySelectorAll('input:checked')].map(cb=>cb.value);
-            if(pendingAddToPlaylistId && checked.length) {
-                await addTracksToPlaylist(pendingAddToPlaylistId, checked);
-                if(currentPlaylistId === pendingAddToPlaylistId) await loadPlaylistTracks(currentPlaylistId);
-            }
-            selectorModal.classList.remove('visible');
-            pendingAddToPlaylistId = null;
-        });
-
         // Инициализация кнопок плеера
         autoplayBtn.addEventListener('click', ()=>{ autoplayEnabled=!autoplayEnabled; localStorage.setItem('autoplay', autoplayEnabled); autoplayBtn.classList.toggle('active', autoplayEnabled); });
         repeatBtn.addEventListener('click', ()=>{ repeatMode=(repeatMode+1)%3; localStorage.setItem('repeatMode', repeatMode); updateRepeatButton(); });
@@ -1129,15 +706,13 @@
         updateRepeatButton();
         autoplayBtn.classList.toggle('active', autoplayEnabled);
 
-        playlistsBtn.addEventListener('click', showPlaylistsModal);
-        modal.addEventListener('click', (e)=>{ if(e.target===modal) hidePlaylistsModal(); });
-
         // Загрузка начальных данных
         (async function init(){
             await openDB();
             applyTheme();
             const tracks = await getAllTracksFromDB();
-            tracks.forEach(t=>addTrackToUI(t));
+            tracks.forEach(t => addTrackToUI(t));
+            updateSearchPlaceholder();
         })();
 
         // Вспомогательные функции для удаления трека
