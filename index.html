@@ -43,6 +43,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
+        /* ---------- ПЕРЕМЕННЫЕ ---------- */
         body {
             --bg-gradient-start: #f3e8fd;
             --bg-gradient-end: #e2d9f0;
@@ -66,14 +67,11 @@
             --control-btn-color: var(--accent);
             --panel-separator: rgba(130, 100, 160, 0.1);
             --modal-overlay: rgba(30, 10, 40, 0.3);
-            --checkbox-border: #9b7bc1;
             
             background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
             transition: background 0.2s, color 0.2s;
         }
 
@@ -100,13 +98,12 @@
             --control-btn-color: #c7b0e0;
             --panel-separator: rgba(220, 190, 250, 0.15);
             --modal-overlay: rgba(10, 5, 15, 0.5);
-            --checkbox-border: #c7b0e0;
         }
 
         /* ---------- ОСНОВНОЙ КОНТЕЙНЕР ---------- */
         .player-container {
             width: 100%;
-            height: 100vh;
+            height: 100%;
             background: var(--container-bg);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
@@ -358,7 +355,7 @@
             text-overflow: ellipsis;
         }
 
-        /* ----- ПРОГРЕСС-БАР ----- */
+        /* ----- ПРОГРЕСС-БАР (фикс сквадрачивания) ----- */
         .progress-slider {
             width: 100%;
             height: 6px;
@@ -392,12 +389,23 @@
             z-index: 2;
         }
 
-        .progress-slider {
-            background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill-percent, 0%), transparent var(--fill-percent, 0%));
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: left center;
+        /* заполнение реализовано через псевдоэлемент (не дёргается) */
+        .progress-slider-container {
+            position: relative;
+            width: 100%;
+        }
+        .progress-slider-container input {
+            width: 100%;
+        }
+        .progress-slider-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 6px;
+            background: var(--accent);
             border-radius: 20px;
+            pointer-events: none;
+            z-index: 1;
         }
 
         .play-pause-btn {
@@ -425,20 +433,19 @@
 
         .hidden { display: none !important; }
 
-        /* ---------- МОДАЛЬНОЕ ОКНО ПЛЕЙЛИСТОВ ---------- */
+        /* ---------- МОДАЛЬНОЕ ОКНО ПЛЕЙЛИСТОВ (полноэкранное) ---------- */
         .playlists-modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--container-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: var(--modal-overlay);
+            backdrop-filter: blur(8px);
             z-index: 1000;
             display: flex;
-            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
-            padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
         }
 
         .playlists-modal.visible {
@@ -447,11 +454,21 @@
         }
 
         .playlists-panel {
-            background: transparent;
+            background: var(--container-bg);
+            backdrop-filter: blur(25px);
             width: 100%;
-            height: 100%;
+            height: 100vh;
+            border-radius: 0;
+            padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
+        }
+
+        .playlists-modal.visible .playlists-panel {
+            transform: translateY(0);
         }
 
         .panel-header {
@@ -469,7 +486,7 @@
             color: var(--text-primary);
         }
 
-        .close-panel-btn, .back-btn {
+        .close-panel-btn {
             background: var(--icon-bg);
             width: 48px;
             height: 48px;
@@ -488,7 +505,7 @@
             margin-bottom: 16px;
             background: var(--panel-bg);
             border-radius: 40px;
-            padding: 12px 18px;
+            padding: 10px 18px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -503,14 +520,13 @@
             color: var(--text-primary);
             font-size: 17px;
         }
-        .playlist-search input::placeholder { color: var(--text-muted); }
 
-        .create-playlist-btn, .add-tracks-btn {
+        .create-playlist-btn {
             background: var(--accent);
             color: white;
             border: none;
             border-radius: 40px;
-            padding: 14px;
+            padding: 16px;
             font-weight: 600;
             font-size: 17px;
             margin-bottom: 20px;
@@ -522,21 +538,13 @@
             gap: 8px;
             backdrop-filter: blur(5px);
         }
-        .create-playlist-btn:active, .add-tracks-btn:active { opacity: 0.8; }
+        .create-playlist-btn:active { opacity: 0.8; }
 
         .playlist-list {
             flex: 1;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--scroll-thumb) var(--scroll-track);
-            background: var(--panel-bg);
-            border-radius: 36px;
-            padding: 16px 8px 16px 16px;
-            margin-top: 8px;
+            padding-right: 4px;
         }
-        .playlist-list::-webkit-scrollbar { width: 6px; }
-        .playlist-list::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 10px; }
-        .playlist-list::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
 
         .playlist-item {
             background: var(--card-bg);
@@ -551,8 +559,8 @@
         .playlist-info {
             flex: 1;
             font-weight: 600;
-            font-size: 18px;
             color: var(--text-primary);
+            font-size: 17px;
         }
         .playlist-actions {
             display: flex;
@@ -572,26 +580,52 @@
             font-size: 18px;
         }
 
-        /* панель управления в деталях плейлиста */
-        .playlist-detail-controls {
+        /* Детали плейлиста */
+        .playlist-detail-view {
             display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .add-tracks-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 16px;
+            font-weight: 600;
+            font-size: 17px;
+            margin: 12px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 8px;
-            margin-bottom: 12px;
+        }
+
+        /* Панель треков в плейлисте (как основной) */
+        .playlist-tracks-panel {
+            background: var(--panel-bg);
+            border-radius: 36px;
+            padding: 18px 0 18px 14px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-top: 8px;
         }
 
         /* Окно выбора треков */
         .track-selector-modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--container-bg);
-            backdrop-filter: blur(25px);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
             z-index: 1100;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
             transition: opacity 0.2s;
         }
         .track-selector-modal.visible {
@@ -599,29 +633,27 @@
             pointer-events: auto;
         }
         .selector-panel {
-            background: var(--panel-bg);
-            width: 100%;
+            background: var(--container-bg);
+            width: 90%;
             max-width: 500px;
-            max-height: 80vh;
+            max-height: 70vh;
             border-radius: 36px;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(5px);
         }
         .selector-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .selector-header h3 {
             color: var(--text-primary);
-            font-size: 22px;
+            font-size: 20px;
         }
         .selector-list {
             overflow-y: auto;
-            max-height: 60vh;
+            max-height: 50vh;
         }
         .selector-item {
             display: flex;
@@ -629,17 +661,19 @@
             gap: 12px;
             padding: 12px;
             background: var(--card-bg);
-            border-radius: 24px;
+            border-radius: 20px;
             margin-bottom: 8px;
             color: var(--text-primary);
+            font-size: 16px;
         }
+        /* Кастомный круглый чекбокс */
         .selector-item input[type="checkbox"] {
-            -webkit-appearance: none;
             appearance: none;
-            width: 26px;
-            height: 26px;
-            border-radius: 26px;
-            border: 2px solid var(--checkbox-border);
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
             background: transparent;
             cursor: pointer;
             transition: 0.1s;
@@ -648,65 +682,21 @@
         .selector-item input[type="checkbox"]:checked {
             background: var(--accent);
             border-color: var(--accent);
-            box-shadow: inset 0 0 0 4px var(--panel-bg);
-        }
-        .selector-item label {
-            flex: 1;
-            font-size: 16px;
-            color: var(--text-primary);
+            box-shadow: inset 0 0 0 4px var(--container-bg);
         }
 
-        /* Кастомный диалог подтверждения */
-        .custom-prompt-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
+        /* Кнопки управления в детали плейлиста */
+        .playlist-controls-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
         }
-        .custom-prompt {
-            background: var(--container-bg);
-            padding: 24px;
-            border-radius: 36px;
-            width: 90%;
-            max-width: 400px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        .custom-prompt input {
-            width: 100%;
-            padding: 16px;
-            border-radius: 30px;
-            border: none;
-            background: var(--panel-bg);
-            color: var(--text-primary);
-            font-size: 18px;
-            margin: 16px 0;
-            outline: none;
-        }
-        .prompt-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-        .prompt-btn {
-            padding: 12px 24px;
-            border-radius: 30px;
-            border: none;
-            font-weight: 600;
-            font-size: 17px;
-            cursor: pointer;
-        }
-        .prompt-btn.cancel { background: var(--icon-bg); color: var(--delete-color); }
-        .prompt-btn.confirm { background: var(--accent); color: white; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 <div class="player-container">
+    <!-- Хедер -->
     <div class="header">
         <div class="theme-toggle" id="theme-toggle"><i class="fas fa-sun"></i></div>
         <h1>Пупок FM</h1>
@@ -714,10 +704,11 @@
         <input type="file" id="file-input" accept=".mp3,.flac,audio/mpeg,audio/flac" multiple>
     </div>
 
+    <!-- Поиск + кнопки управления -->
     <div class="search-row">
         <div class="search-panel">
             <i class="fas fa-search"></i>
-            <input type="text" id="search-input" placeholder="Поиск" autocomplete="off">
+            <input type="text" id="search-input" placeholder="Поиск (0)" autocomplete="off">
         </div>
         <div class="playback-controls">
             <div class="control-btn" id="playlists-btn" title="Плейлисты"><i class="fas fa-folder-open"></i></div>
@@ -726,6 +717,7 @@
         </div>
     </div>
 
+    <!-- Основная панель треков -->
     <div class="playlist-panel">
         <div class="playlist-content" id="playlist-content">
             <div id="playlist"></div>
@@ -734,9 +726,11 @@
     </div>
 </div>
 
-<!-- Модалка плейлистов -->
+<!-- Модальное окно плейлистов -->
 <div class="playlists-modal" id="playlists-modal">
-    <div class="playlists-panel" id="playlists-panel"></div>
+    <div class="playlists-panel" id="playlists-panel">
+        <!-- Динамический контент -->
+    </div>
 </div>
 
 <!-- Модалка выбора треков -->
@@ -832,91 +826,29 @@
 
         let autoplayEnabled = localStorage.getItem('autoplay') === 'true';
         let repeatMode = parseInt(localStorage.getItem('repeatMode') || '0');
-        const tracksMap = new Map();
+        const tracksMap = new Map(); // id -> { element, name, blob, objectURL, duration, slider, playBtn, fillEl }
         let activeTrackId = null;
         let currentPlaylistId = null;
         let pendingAddToPlaylistId = null;
 
-        // ---------- КАСТОМНЫЙ ПРОМПТ ----------
-        function customPrompt(title, defaultValue = '') {
-            return new Promise((resolve) => {
-                const overlay = document.createElement('div');
-                overlay.className = 'custom-prompt-overlay';
-                overlay.innerHTML = `
-                    <div class="custom-prompt">
-                        <h3 style="color: var(--text-primary); margin-bottom: 8px; font-size: 20px;">${title}</h3>
-                        <input type="text" id="prompt-input" value="${defaultValue}" autofocus>
-                        <div class="prompt-buttons">
-                            <button class="prompt-btn cancel">Отмена</button>
-                            <button class="prompt-btn confirm">ОК</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
-                const input = overlay.querySelector('#prompt-input');
-                input.focus();
-                overlay.querySelector('.cancel').addEventListener('click', () => {
-                    document.body.removeChild(overlay);
-                    resolve(null);
-                });
-                overlay.querySelector('.confirm').addEventListener('click', () => {
-                    const val = input.value.trim();
-                    document.body.removeChild(overlay);
-                    resolve(val || null);
-                });
-                input.addEventListener('keypress', (e) => { if(e.key==='Enter') overlay.querySelector('.confirm').click(); });
-                overlay.addEventListener('click', (e) => { if(e.target===overlay) overlay.querySelector('.cancel').click(); });
-            });
-        }
-
-        function customConfirm(message) {
-            return new Promise((resolve) => {
-                const overlay = document.createElement('div');
-                overlay.className = 'custom-prompt-overlay';
-                overlay.innerHTML = `
-                    <div class="custom-prompt">
-                        <h3 style="color: var(--text-primary); margin-bottom: 20px; font-size: 20px;">${message}</h3>
-                        <div class="prompt-buttons">
-                            <button class="prompt-btn cancel">Отмена</button>
-                            <button class="prompt-btn confirm">Да</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
-                overlay.querySelector('.cancel').addEventListener('click', () => { document.body.removeChild(overlay); resolve(false); });
-                overlay.querySelector('.confirm').addEventListener('click', () => { document.body.removeChild(overlay); resolve(true); });
-                overlay.addEventListener('click', (e) => { if(e.target===overlay) overlay.querySelector('.cancel').click(); });
-            });
-        }
-
         // ---------- ФУНКЦИИ ПЛЕЕРА ----------
-        function updateEmptyMessage() { emptyMsg.style.display = playlistEl.children.length ? 'none' : 'block'; }
+        function updateEmptyMessage() { 
+            emptyMsg.style.display = playlistEl.children.length ? 'none' : 'block'; 
+            updateSearchPlaceholder();
+        }
+        function updateSearchPlaceholder() {
+            const total = playlistEl.children.length;
+            searchInput.placeholder = `Поиск (${total})`;
+        }
         function updatePlayButton(id, isPlaying) {
-            const t = tracksMap.get(id);
-            if (!t) return;
+            const t = tracksMap.get(id); if(!t) return;
             t.playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
             t.playBtn.classList.toggle('playing', isPlaying);
-            // обновить также в плейлисте, если открыт
-            const playlistBtn = document.querySelector(`.playlist-list .play-pause-btn[data-id="${id}"]`);
-            if (playlistBtn) {
-                playlistBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-                playlistBtn.classList.toggle('playing', isPlaying);
-            }
         }
-        function updateSliderFill(slider, value, max) {
-            if (!slider) return;
+        function updateSliderFill(slider, fillEl, value, max) {
+            if (!slider || !fillEl) return;
             const percent = max > 0 ? (value / max) * 100 : 0;
-            slider.style.setProperty('--fill-percent', percent + '%');
-        }
-
-        // Обновление всех слайдеров с данным trackId
-        function updateAllSlidersForTrack(trackId, current, duration) {
-            const sliders = document.querySelectorAll(`.progress-slider[data-track-id="${trackId}"]`);
-            sliders.forEach(slider => {
-                slider.value = current;
-                updateSliderFill(slider, current, duration);
-                if (!isNaN(duration) && duration > 0) slider.max = Math.floor(duration);
-            });
+            fillEl.style.width = percent + '%';
         }
 
         audio.addEventListener('timeupdate', () => {
@@ -926,10 +858,8 @@
             const current = audio.currentTime;
             const duration = audio.duration || track.duration;
             track.slider.value = current;
-            updateSliderFill(track.slider, current, duration);
+            updateSliderFill(track.slider, track.fillEl, current, duration);
             if (!isNaN(duration) && duration > 0) track.slider.max = Math.floor(duration);
-            // обновить слайдеры в плейлистах
-            updateAllSlidersForTrack(activeTrackId, current, duration);
         });
 
         audio.addEventListener('ended', () => {
@@ -937,7 +867,7 @@
             if (repeatMode === 2) { audio.currentTime = 0; audio.play().catch(()=>{}); return; }
             const track = tracksMap.get(activeTrackId);
             track.slider.value = 0;
-            updateSliderFill(track.slider, 0, track.slider.max);
+            updateSliderFill(track.slider, track.fillEl, 0, track.slider.max);
             updatePlayButton(activeTrackId, false);
             if (autoplayEnabled) {
                 const nextId = getNextVisibleTrack(activeTrackId);
@@ -960,7 +890,7 @@
             if (activeTrackId === id) { if (autoPlay && audio.paused) audio.play().catch(()=>{}); return; }
             if (activeTrackId) {
                 const prev = tracksMap.get(activeTrackId);
-                if (prev) { prev.slider.value = 0; updateSliderFill(prev.slider, 0, prev.slider.max); updatePlayButton(activeTrackId, false); }
+                if (prev) { prev.slider.value = 0; updateSliderFill(prev.slider, prev.fillEl, 0, prev.slider.max); updatePlayButton(activeTrackId, false); }
             }
             audio.src = track.objectURL;
             audio.load();
@@ -973,7 +903,7 @@
                 audio.removeEventListener('loadedmetadata', onMeta);
             });
             track.slider.value = 0;
-            updateSliderFill(track.slider, 0, track.slider.max);
+            updateSliderFill(track.slider, track.fillEl, 0, track.slider.max);
             if (autoPlay) { audio.play().catch(()=>{}); updatePlayButton(id, true); }
             else updatePlayButton(id, false);
         }
@@ -996,12 +926,12 @@
             await removeTrackFromAllPlaylists(id);
         }
 
-        // БД треки
+        // ---------- РАБОТА С БД (треки) ----------
         async function addTrackToDB(track) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks','readwrite'); const r = tx.objectStore('tracks').put(track); r.onsuccess=res; r.onerror=rej; }); }
         async function getAllTracksFromDB() { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks'); const r = tx.objectStore('tracks').getAll(); r.onsuccess=()=>res(r.result); r.onerror=rej; }); }
         async function deleteTrackFromDB(id) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('tracks','readwrite'); const r = tx.objectStore('tracks').delete(id); r.onsuccess=res; r.onerror=rej; }); }
 
-        // UI треков
+        // ---------- UI ТРЕКОВ ----------
         function createTrackElement(track) {
             const item = document.createElement('div'); item.className = 'track-item'; item.dataset.id = track.id;
             const row = document.createElement('div'); row.className = 'track-row';
@@ -1011,28 +941,31 @@
             actionLeft.appendChild(deleteBtn);
             const infoDiv = document.createElement('div'); infoDiv.className = 'track-info';
             const nameDiv = document.createElement('div'); nameDiv.className = 'track-name'; nameDiv.textContent = track.name;
+            const sliderContainer = document.createElement('div'); sliderContainer.className = 'progress-slider-container';
             const slider = document.createElement('input'); slider.type = 'range'; slider.className = 'progress-slider'; slider.min = 0; slider.max = track.duration||0; slider.value=0; slider.step=0.1;
-            slider.dataset.trackId = track.id;
-            infoDiv.appendChild(nameDiv); infoDiv.appendChild(slider);
+            const fill = document.createElement('div'); fill.className = 'progress-slider-fill';
+            sliderContainer.appendChild(slider);
+            sliderContainer.appendChild(fill);
+            infoDiv.appendChild(nameDiv); infoDiv.appendChild(sliderContainer);
             const playBtn = document.createElement('div'); playBtn.className = 'play-pause-btn'; playBtn.innerHTML = '<i class="fas fa-play"></i>';
             row.appendChild(actionLeft); row.appendChild(infoDiv); row.appendChild(playBtn);
             item.appendChild(row);
-            return { item, deleteBtn, playBtn, slider };
+            return { item, deleteBtn, playBtn, slider, fillEl: fill };
         }
 
         function addTrackToUI(track) {
-            const { item, playBtn, slider } = createTrackElement(track);
+            const { item, playBtn, slider, fillEl } = createTrackElement(track);
             playlistEl.appendChild(item);
-            tracksMap.set(track.id, { element: item, name: track.name, blob: track.blob, objectURL: URL.createObjectURL(track.blob), duration: track.duration, slider, playBtn });
+            tracksMap.set(track.id, { element: item, name: track.name, blob: track.blob, objectURL: URL.createObjectURL(track.blob), duration: track.duration, slider, playBtn, fillEl });
             playBtn.addEventListener('click', ()=> togglePlay(track.id));
             slider.addEventListener('input', (e) => {
                 const val = parseFloat(e.target.value);
-                updateSliderFill(slider, val, slider.max);
+                updateSliderFill(slider, fillEl, val, slider.max);
                 if (activeTrackId === track.id) audio.currentTime = val;
                 else { activateTrack(track.id, false); audio.currentTime = val; updatePlayButton(track.id, false); }
             });
             updatePlayButton(track.id, false);
-            updateSliderFill(slider, 0, slider.max);
+            updateSliderFill(slider, fillEl, 0, slider.max);
             updateEmptyMessage();
             filterTracks();
         }
@@ -1041,17 +974,18 @@
             const q = searchInput.value.trim().toLowerCase();
             let visibleCount = 0;
             tracksMap.forEach((t) => {
-                const visible = !q || t.name.toLowerCase().includes(q);
-                t.element.style.display = visible ? 'block' : 'none';
-                if (visible) visibleCount++;
+                const match = !q || t.name.toLowerCase().includes(q);
+                t.element.style.display = match ? 'block' : 'none';
+                if (match) visibleCount++;
             });
-            searchInput.placeholder = `Поиск${visibleCount !== tracksMap.size ? ` (${visibleCount})` : ''}`;
+            searchInput.placeholder = `Поиск (${visibleCount})`;
         }
         searchInput.addEventListener('input', filterTracks);
 
+        // Загрузка файлов
         fileInput.addEventListener('change', async (e) => {
             for (const file of Array.from(e.target.files)) {
-                if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|flac)$/i)) continue;
+                if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|flac)$/i)) { alert(`Не аудио: ${file.name}`); continue; }
                 let duration; try { duration = await getAudioDuration(file); } catch { duration = null; }
                 if (!duration) { alert(`Ошибка чтения: ${file.name}`); continue; }
                 const id = crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36);
@@ -1060,7 +994,6 @@
                 addTrackToUI(track);
             }
             fileInput.value = '';
-            filterTracks();
         });
         function getAudioDuration(blob) {
             return new Promise((resolve) => {
@@ -1070,32 +1003,51 @@
             });
         }
 
-        function showDeleteConfirmation(id) {
-            const track = tracksMap.get(id); if(!track) return;
-            const left = track.element.querySelector('.action-left');
-            left.innerHTML = `<div class="confirm-btn"><i class="fas fa-check"></i></div><div class="cancel-btn"><i class="fas fa-times"></i></div>`;
-            left.querySelector('.confirm-btn').addEventListener('click', (e)=>{ e.stopPropagation(); deleteTrack(id); });
-            left.querySelector('.cancel-btn').addEventListener('click', (e)=>{ e.stopPropagation(); restoreDeleteButton(track); });
-        }
-
-        function restoreDeleteButton(track) {
-            const left = track.element.querySelector('.action-left');
-            left.innerHTML = `<div class="delete-btn"><i class="fas fa-trash-alt"></i></div>`;
-            left.querySelector('.delete-btn').addEventListener('click', (e)=>{ e.stopPropagation(); showDeleteConfirmation(track.element.dataset.id); });
-        }
-
         // ---------- ПЛЕЙЛИСТЫ (БД) ----------
-        async function createPlaylist(name) { await openDB(); const id = crypto.randomUUID(); const playlist = { id, name }; return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); const r = tx.objectStore('playlists').add(playlist); r.onsuccess=()=>res(id); r.onerror=rej; }); }
-        async function getAllPlaylists() { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('playlists'); const r = tx.objectStore('playlists').getAll(); r.onsuccess=()=>res(r.result); r.onerror=rej; }); }
-        async function updatePlaylist(id, name) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); const store = tx.objectStore('playlists'); const get = store.get(id); get.onsuccess=()=>{ const pl = get.result; pl.name = name; store.put(pl).onsuccess=res; }; get.onerror=rej; }); }
-        async function deletePlaylist(id) { await openDB(); await new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks','readwrite'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.openCursor(IDBKeyRange.only(id)); r.onsuccess=(e)=>{ const cursor=e.target.result; if(cursor){ cursor.delete(); cursor.continue(); } else res(); }; r.onerror=rej; }); return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); tx.objectStore('playlists').delete(id).onsuccess=res; }); }
-        async function addTracksToPlaylist(playlistId, trackIds) { await openDB(); const tx = db.transaction('playlistTracks','readwrite'); const store = tx.objectStore('playlistTracks'); for (const tid of trackIds) { store.add({ playlistId, trackId: tid }); } return new Promise((res,rej)=>{ tx.oncomplete=res; tx.onerror=rej; }); }
-        async function getPlaylistTracks(playlistId) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.getAll(playlistId); r.onsuccess=()=>res(r.result.map(i=>i.trackId)); r.onerror=rej; }); }
-        async function removeTrackFromPlaylist(playlistId, trackId) { await openDB(); return new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks','readwrite'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.openCursor(IDBKeyRange.only(playlistId)); r.onsuccess=(e)=>{ const c=e.target.result; if(c){ if(c.value.trackId===trackId) c.delete(); c.continue(); } else res(); }; r.onerror=rej; }); }
-        async function removeTrackFromAllPlaylists(trackId) { await openDB(); return new Promise((res)=>{ const tx = db.transaction('playlistTracks','readwrite'); const store = tx.objectStore('playlistTracks'); const index = store.index('trackId'); const r = index.openCursor(IDBKeyRange.only(trackId)); r.onsuccess=(e)=>{ const c=e.target.result; if(c){ c.delete(); c.continue(); } else res(); }; }); }
+        async function createPlaylist(name) {
+            await openDB();
+            const id = crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36);
+            const playlist = { id, name };
+            return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); const r = tx.objectStore('playlists').add(playlist); r.onsuccess=()=>res(id); r.onerror=rej; });
+        }
+        async function getAllPlaylists() {
+            await openDB();
+            return new Promise((res,rej)=>{ const tx = db.transaction('playlists'); const r = tx.objectStore('playlists').getAll(); r.onsuccess=()=>res(r.result); r.onerror=rej; });
+        }
+        async function updatePlaylist(id, name) {
+            await openDB();
+            return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); const store = tx.objectStore('playlists'); const get = store.get(id); get.onsuccess=()=>{ const pl = get.result; pl.name = name; store.put(pl).onsuccess=res; }; get.onerror=rej; });
+        }
+        async function deletePlaylist(id) {
+            await openDB();
+            await new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks','readwrite'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.openCursor(IDBKeyRange.only(id)); r.onsuccess=(e)=>{ const cursor=e.target.result; if(cursor){ cursor.delete(); cursor.continue(); } else res(); }; r.onerror=rej; });
+            return new Promise((res,rej)=>{ const tx = db.transaction('playlists','readwrite'); tx.objectStore('playlists').delete(id).onsuccess=res; });
+        }
+        async function addTracksToPlaylist(playlistId, trackIds) {
+            await openDB();
+            const tx = db.transaction('playlistTracks','readwrite');
+            const store = tx.objectStore('playlistTracks');
+            for (const tid of trackIds) { store.add({ playlistId, trackId: tid }); }
+            return new Promise((res,rej)=>{ tx.oncomplete=res; tx.onerror=rej; });
+        }
+        async function getPlaylistTracks(playlistId) {
+            await openDB();
+            return new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.getAll(playlistId); r.onsuccess=()=>res(r.result.map(i=>i.trackId)); r.onerror=rej; });
+        }
+        async function removeTrackFromPlaylist(playlistId, trackId) {
+            await openDB();
+            return new Promise((res,rej)=>{ const tx = db.transaction('playlistTracks','readwrite'); const index = tx.objectStore('playlistTracks').index('playlistId'); const r = index.openCursor(IDBKeyRange.only(playlistId)); r.onsuccess=(e)=>{ const c=e.target.result; if(c){ if(c.value.trackId===trackId) c.delete(); c.continue(); } else res(); }; r.onerror=rej; });
+        }
+        async function removeTrackFromAllPlaylists(trackId) {
+            await openDB();
+            return new Promise((res)=>{ const tx = db.transaction('playlistTracks','readwrite'); const store = tx.objectStore('playlistTracks'); const index = store.index('trackId'); const r = index.openCursor(IDBKeyRange.only(trackId)); r.onsuccess=(e)=>{ const c=e.target.result; if(c){ c.delete(); c.continue(); } else res(); }; });
+        }
 
         // ---------- ОТОБРАЖЕНИЕ МОДАЛКИ ПЛЕЙЛИСТОВ ----------
-        function showPlaylistsModal() { renderPlaylistsList(); modal.classList.add('visible'); }
+        function showPlaylistsModal() {
+            renderPlaylistsList();
+            modal.classList.add('visible');
+        }
         function hidePlaylistsModal() { modal.classList.remove('visible'); }
 
         function renderPlaylistsList() {
@@ -1104,13 +1056,13 @@
                     <h2>Плейлисты</h2>
                     <button class="close-panel-btn" id="close-modal-btn"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="playlist-search"><i class="fas fa-search"></i><input type="text" id="playlist-search-input" placeholder="Поиск"></div>
+                <div class="playlist-search"><i class="fas fa-search"></i><input type="text" id="playlist-search-input" placeholder="Поиск (0)"></div>
                 <button class="create-playlist-btn" id="create-playlist-btn"><i class="fas fa-plus-circle"></i> Новый плейлист</button>
                 <div class="playlist-list" id="playlist-list-container"></div>
             `;
             document.getElementById('close-modal-btn').addEventListener('click', hidePlaylistsModal);
             document.getElementById('create-playlist-btn').addEventListener('click', async ()=>{
-                const name = await customPrompt('Название плейлиста');
+                const name = prompt('Название плейлиста:');
                 if(name) { await createPlaylist(name); renderPlaylistsList(); }
             });
             const searchInput = document.getElementById('playlist-search-input');
@@ -1123,38 +1075,47 @@
             const playlists = await getAllPlaylists();
             const q = document.getElementById('playlist-search-input')?.value.toLowerCase() || '';
             const filtered = playlists.filter(p=>p.name.toLowerCase().includes(q));
+            document.getElementById('playlist-search-input').placeholder = `Поиск (${filtered.length})`;
             container.innerHTML = filtered.map(p=>`
                 <div class="playlist-item" data-id="${p.id}">
                     <div class="playlist-info">${p.name}</div>
-                    <div class="playlist-actions">
+                    <div class="playlist-actions" id="actions-${p.id}">
                         <button class="icon-btn edit-playlist-btn" data-id="${p.id}"><i class="fas fa-pencil-alt"></i></button>
                         <button class="icon-btn delete-playlist-btn" data-id="${p.id}"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
             `).join('');
             container.querySelectorAll('.playlist-item').forEach(el=>{
-                el.addEventListener('click', (e)=>{ if(!e.target.closest('button')) openPlaylistDetail(el.dataset.id); });
+                el.addEventListener('click', (e)=>{
+                    if(e.target.closest('button')) return;
+                    openPlaylistDetail(el.dataset.id);
+                });
             });
             container.querySelectorAll('.edit-playlist-btn').forEach(b=>b.addEventListener('click', async (e)=>{
                 e.stopPropagation();
                 const id = b.dataset.id;
                 const pl = (await getAllPlaylists()).find(p=>p.id===id);
-                const newName = await customPrompt('Новое название', pl.name);
+                const newName = prompt('Новое название', pl?.name);
                 if(newName) { await updatePlaylist(id, newName); renderPlaylistsList(); }
             }));
-            container.querySelectorAll('.delete-playlist-btn').forEach(b=>b.addEventListener('click', async (e)=>{
+            container.querySelectorAll('.delete-playlist-btn').forEach(b=>b.addEventListener('click', (e)=>{
                 e.stopPropagation();
                 const id = b.dataset.id;
-                const pl = (await getAllPlaylists()).find(p=>p.id===id);
-                const confirmed = await customConfirm(`Удалить плейлист «${pl.name}»?`);
-                if(confirmed) { await deletePlaylist(id); renderPlaylistsList(); }
+                const actionsDiv = document.getElementById(`actions-${id}`);
+                // Показать подтверждение
+                actionsDiv.innerHTML = `
+                    <button class="icon-btn confirm-delete-btn" data-id="${id}"><i class="fas fa-check"></i></button>
+                    <button class="icon-btn cancel-delete-btn" data-id="${id}"><i class="fas fa-times"></i></button>
+                `;
+                actionsDiv.querySelector('.confirm-delete-btn').addEventListener('click', async (ev)=>{
+                    ev.stopPropagation();
+                    if(confirm('Удалить плейлист?')) { await deletePlaylist(id); renderPlaylistsList(); }
+                });
+                actionsDiv.querySelector('.cancel-delete-btn').addEventListener('click', (ev)=>{
+                    ev.stopPropagation();
+                    renderPlaylistsList(); // вернуть исходные кнопки
+                });
             }));
-            // обновление плейсхолдера с количеством
-            const searchField = document.getElementById('playlist-search-input');
-            if (searchField) {
-                const total = playlists.length;
-                searchField.placeholder = `Поиск${filtered.length !== total ? ` (${filtered.length})` : ''}`;
-            }
         }
         function filterPlaylists() { loadPlaylistsToContainer(); }
 
@@ -1170,29 +1131,25 @@
                     <h2>${playlist.name}</h2>
                     <button class="close-panel-btn" id="back-from-detail"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="playlist-detail-controls">
-                    <div class="playlist-search" style="flex:1; margin-bottom:0;"><i class="fas fa-search"></i><input type="text" id="detail-search" placeholder="Поиск"></div>
+                <div class="playlist-search"><i class="fas fa-search"></i><input type="text" id="detail-search" placeholder="Поиск (0)"></div>
+                <div class="playlist-controls-row">
                     <div class="control-btn" id="detail-autoplay-btn" title="Автовоспроизведение"><i class="fas fa-play-circle"></i></div>
                     <div class="control-btn" id="detail-repeat-btn" title="Режим повтора"><i class="fas fa-repeat"></i></div>
                 </div>
                 <button class="add-tracks-btn" id="add-tracks-to-playlist"><i class="fas fa-plus"></i> Добавить треки</button>
-                <div class="playlist-list" id="playlist-tracks-container"></div>
+                <div class="playlist-tracks-panel">
+                    <div class="playlist-content" id="playlist-tracks-container"></div>
+                </div>
             `;
-            document.getElementById('back-from-detail').addEventListener('click', ()=>{ renderPlaylistsList(); });
-            document.getElementById('add-tracks-to-playlist').addEventListener('click', ()=>{
-                pendingAddToPlaylistId = currentPlaylistId;
-                showTrackSelector();
+            document.getElementById('back-from-detail').addEventListener('click', ()=>{
+                renderPlaylistsList(); // возврат к списку
             });
-            const detailSearch = document.getElementById('detail-search');
-            detailSearch.addEventListener('input', ()=> loadPlaylistTracks(currentPlaylistId));
-            
-            // синхронизация кнопок автовоспроизведения и повтора
+            // синхронизация кнопок управления
             const detailAutoplay = document.getElementById('detail-autoplay-btn');
             const detailRepeat = document.getElementById('detail-repeat-btn');
             detailAutoplay.classList.toggle('active', autoplayEnabled);
             detailRepeat.classList.toggle('active', repeatMode === 1);
             detailRepeat.classList.toggle('repeat-one', repeatMode === 2);
-            
             detailAutoplay.addEventListener('click', ()=>{
                 autoplayEnabled = !autoplayEnabled;
                 localStorage.setItem('autoplay', autoplayEnabled);
@@ -1200,13 +1157,19 @@
                 detailAutoplay.classList.toggle('active', autoplayEnabled);
             });
             detailRepeat.addEventListener('click', ()=>{
-                repeatMode = (repeatMode + 1) % 3;
+                repeatMode = (repeatMode+1)%3;
                 localStorage.setItem('repeatMode', repeatMode);
                 updateRepeatButton();
                 detailRepeat.classList.toggle('active', repeatMode === 1);
                 detailRepeat.classList.toggle('repeat-one', repeatMode === 2);
             });
 
+            document.getElementById('add-tracks-to-playlist').addEventListener('click', ()=>{
+                pendingAddToPlaylistId = currentPlaylistId;
+                showTrackSelector();
+            });
+            const searchInput = document.getElementById('detail-search');
+            searchInput.addEventListener('input', ()=> loadPlaylistTracks(currentPlaylistId, searchInput.value));
             await loadPlaylistTracks(currentPlaylistId);
         }
 
@@ -1214,91 +1177,62 @@
             const container = document.getElementById('playlist-tracks-container');
             const trackIds = await getPlaylistTracks(playlistId);
             const allTracks = await getAllTracksFromDB();
-            const q = filterText || document.getElementById('detail-search')?.value.toLowerCase() || '';
-            const tracks = allTracks.filter(t=>trackIds.includes(t.id) && (!q || t.name.toLowerCase().includes(q)));
-            container.innerHTML = tracks.map(t=>{
-                const isActive = (activeTrackId === t.id);
-                const isPlaying = isActive && !audio.paused;
-                return `
+            const tracks = allTracks.filter(t=>trackIds.includes(t.id) && (!filterText || t.name.toLowerCase().includes(filterText.toLowerCase())));
+            document.getElementById('detail-search').placeholder = `Поиск (${tracks.length})`;
+            container.innerHTML = tracks.map(t=>`
                 <div class="track-item" data-id="${t.id}">
                     <div class="track-row">
-                        <div class="action-left">
+                        <div class="action-left" id="action-${t.id}">
                             <div class="delete-btn" data-id="${t.id}"><i class="fas fa-trash-alt"></i></div>
                         </div>
                         <div class="track-info">
                             <div class="track-name">${t.name}</div>
-                            <input type="range" class="progress-slider" min="0" max="${t.duration||0}" value="${isActive ? audio.currentTime : 0}" step="0.1" data-track-id="${t.id}">
+                            <div class="progress-slider-container">
+                                <input type="range" class="progress-slider" min="0" max="${t.duration||0}" value="0" step="0.1" disabled>
+                                <div class="progress-slider-fill"></div>
+                            </div>
                         </div>
-                        <div class="play-pause-btn" data-id="${t.id}">
-                            <i class="fas fa-${isPlaying ? 'pause' : 'play'}"></i>
-                        </div>
+                        <div class="play-pause-btn" data-id="${t.id}"><i class="fas fa-play"></i></div>
                     </div>
                 </div>
-            `}).join('');
-            // инициализация слайдеров
-            container.querySelectorAll('.progress-slider').forEach(slider => {
-                const trackId = slider.dataset.trackId;
-                const track = allTracks.find(t=>t.id === trackId);
-                if (track) {
-                    const val = (activeTrackId === trackId) ? audio.currentTime : 0;
-                    slider.value = val;
-                    updateSliderFill(slider, val, track.duration);
-                }
-                slider.addEventListener('input', (e) => {
-                    const val = parseFloat(e.target.value);
-                    updateSliderFill(slider, val, slider.max);
-                    if (activeTrackId === trackId) audio.currentTime = val;
-                    else {
-                        const trackData = allTracks.find(t=>t.id === trackId);
-                        if (trackData && !tracksMap.has(trackId)) {
-                            addTrackToUI(trackData);
-                        }
-                        activateTrack(trackId, false);
-                        audio.currentTime = val;
-                    }
+            `).join('');
+            // обработчики удаления с подтверждением
+            container.querySelectorAll('.delete-btn').forEach(b=>b.addEventListener('click', (e)=>{
+                e.stopPropagation();
+                const tid = b.dataset.id;
+                const actionDiv = document.getElementById(`action-${tid}`);
+                actionDiv.innerHTML = `
+                    <div class="confirm-btn" data-id="${tid}"><i class="fas fa-check"></i></div>
+                    <div class="cancel-btn" data-id="${tid}"><i class="fas fa-times"></i></div>
+                `;
+                actionDiv.querySelector('.confirm-btn').addEventListener('click', async (ev)=>{
+                    ev.stopPropagation();
+                    await removeTrackFromPlaylist(playlistId, tid);
+                    loadPlaylistTracks(playlistId, document.getElementById('detail-search').value);
                 });
-            });
-            container.querySelectorAll('.delete-btn').forEach(b=>{
-                b.addEventListener('click', (e)=>{
-                    e.stopPropagation();
-                    const tid = b.dataset.id;
-                    const item = b.closest('.track-item');
-                    showPlaylistTrackDeleteConfirmation(item, playlistId, tid);
+                actionDiv.querySelector('.cancel-btn').addEventListener('click', (ev)=>{
+                    ev.stopPropagation();
+                    loadPlaylistTracks(playlistId, document.getElementById('detail-search').value); // перерисовать
                 });
-            });
+            }));
+            // запуск трека
             container.querySelectorAll('.play-pause-btn').forEach(b=>{
                 b.addEventListener('click', ()=>{
                     const tid = b.dataset.id;
-                    if (tracksMap.has(tid)) togglePlay(tid);
-                    else {
-                        const trackData = allTracks.find(t=>t.id===tid);
-                        if(trackData) { addTrackToUI(trackData); togglePlay(tid); }
+                    let track = tracksMap.get(tid);
+                    if (!track) {
+                        const tData = allTracks.find(t=>t.id===tid);
+                        if (tData) { addTrackToUI(tData); track = tracksMap.get(tid); }
                     }
+                    if (track) togglePlay(tid);
                 });
             });
-            // обновление плейсхолдера поиска
-            const searchField = document.getElementById('detail-search');
-            if (searchField) {
-                const total = trackIds.length;
-                searchField.placeholder = `Поиск${tracks.length !== total ? ` (${tracks.length})` : ''}`;
-            }
-        }
-
-        function showPlaylistTrackDeleteConfirmation(itemElement, playlistId, trackId) {
-            const left = itemElement.querySelector('.action-left');
-            left.innerHTML = `<div class="confirm-btn"><i class="fas fa-check"></i></div><div class="cancel-btn"><i class="fas fa-times"></i></div>`;
-            left.querySelector('.confirm-btn').addEventListener('click', async (e)=>{
-                e.stopPropagation();
-                await removeTrackFromPlaylist(playlistId, trackId);
-                loadPlaylistTracks(playlistId);
-            });
-            left.querySelector('.cancel-btn').addEventListener('click', (e)=>{
-                e.stopPropagation();
-                left.innerHTML = `<div class="delete-btn" data-id="${trackId}"><i class="fas fa-trash-alt"></i></div>`;
-                left.querySelector('.delete-btn').addEventListener('click', (e2)=>{
-                    e2.stopPropagation();
-                    showPlaylistTrackDeleteConfirmation(itemElement, playlistId, trackId);
-                });
+            // прогресс-бары (заполнение)
+            container.querySelectorAll('.progress-slider').forEach(slider => {
+                const fill = slider.parentElement.querySelector('.progress-slider-fill');
+                const update = () => { if(fill) fill.style.width = (slider.value / slider.max * 100) + '%'; };
+                slider.addEventListener('input', update);
+                update();
             });
         }
 
@@ -1318,7 +1252,8 @@
         }
         selectorCancel.addEventListener('click', ()=>{
             selectorModal.classList.remove('visible');
-            pendingAddToPlaylistId = null;
+            // сброс выбора
+            selectorList.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
         });
         selectorConfirm.addEventListener('click', async ()=>{
             const checked = [...selectorList.querySelectorAll('input:checked')].map(cb=>cb.value);
@@ -1327,11 +1262,11 @@
                 if(currentPlaylistId === pendingAddToPlaylistId) await loadPlaylistTracks(currentPlaylistId);
             }
             selectorModal.classList.remove('visible');
+            selectorList.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
             pendingAddToPlaylistId = null;
         });
-        selectorModal.addEventListener('click', (e)=>{ if(e.target===selectorModal) selectorCancel.click(); });
 
-        // Кнопки управления
+        // Инициализация кнопок плеера
         autoplayBtn.addEventListener('click', ()=>{ autoplayEnabled=!autoplayEnabled; localStorage.setItem('autoplay', autoplayEnabled); autoplayBtn.classList.toggle('active', autoplayEnabled); });
         repeatBtn.addEventListener('click', ()=>{ repeatMode=(repeatMode+1)%3; localStorage.setItem('repeatMode', repeatMode); updateRepeatButton(); });
         function updateRepeatButton() {
@@ -1341,17 +1276,27 @@
         }
         updateRepeatButton();
         autoplayBtn.classList.toggle('active', autoplayEnabled);
+
         playlistsBtn.addEventListener('click', showPlaylistsModal);
         modal.addEventListener('click', (e)=>{ if(e.target===modal) hidePlaylistsModal(); });
 
-        // Инициализация
+        // Загрузка начальных данных
         (async function init(){
             await openDB();
             applyTheme();
             const tracks = await getAllTracksFromDB();
             tracks.forEach(t=>addTrackToUI(t));
-            filterTracks();
+            updateSearchPlaceholder();
         })();
+
+        // Подтверждение удаления трека (кастом)
+        function showDeleteConfirmation(id) {
+            const track = tracksMap.get(id); if(!track) return;
+            const left = track.element.querySelector('.action-left');
+            left.innerHTML = `<div class="confirm-btn"><i class="fas fa-check"></i></div><div class="cancel-btn"><i class="fas fa-times"></i></div>`;
+            left.querySelector('.confirm-btn').addEventListener('click', (e)=>{ e.stopPropagation(); deleteTrack(id); });
+            left.querySelector('.cancel-btn').addEventListener('click', (e)=>{ e.stopPropagation(); left.innerHTML = `<div class="delete-btn"><i class="fas fa-trash-alt"></i></div>`; left.querySelector('.delete-btn').addEventListener('click', (e2)=>{ e2.stopPropagation(); showDeleteConfirmation(id); }); });
+        }
 
     })();
 </script>
